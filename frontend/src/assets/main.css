@@ -1,0 +1,75 @@
+:root {
+  color: #182230;
+  background: #f4f7fb;
+  font-family: Inter, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: #f4f7fb; }
+a { text-decoration: none; }
+
+.app-shell { display: flex; min-height: 100vh; }
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 20px;
+  color: #dfe7f1;
+  background: #10243d;
+}
+.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 36px; color: #fff; font-size: 1.25rem; font-weight: 800; }
+.brand-mark { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 10px; color: #10243d; background: #64d8cb; }
+.sidebar .nav-link { padding: 11px 14px; border-radius: 9px; color: #b8c7d9; font-weight: 600; }
+.sidebar .nav-link:hover, .sidebar .router-link-active { color: #fff; background: #1d3858; }
+.sidebar-note { margin-top: auto; display: grid; gap: 5px; padding: 16px; border: 1px solid #2c4868; border-radius: 12px; background: #162f4d; }
+.sidebar-note span { color: #9fb1c6; font-size: .8rem; line-height: 1.6; }
+
+.content { width: 100%; margin-left: 240px; }
+.topbar { height: 76px; display: flex; align-items: center; justify-content: space-between; padding: 0 36px; border-bottom: 1px solid #e4e9f0; background: #fff; }
+.topbar > div { display: grid; }
+.topbar small { color: #7d8a99; }
+.role-badge { padding: 7px 12px; border-radius: 999px; color: #17665c; background: #dcf7f2; font-size: .78rem; font-weight: 800; }
+.page-container { max-width: 1280px; margin: 0 auto; padding: 42px 36px; }
+.page-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+.page-heading h1 { margin: 2px 0 8px; font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 800; color: #10243d; }
+.page-heading p { margin: 0; color: #68778a; }
+.eyebrow { color: #2d8c80 !important; font-size: .75rem; font-weight: 900; letter-spacing: .14em; }
+
+.api-status { display: flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 999px; background: #fff; box-shadow: 0 8px 24px rgba(23, 42, 66, .08); font-size: .75rem; font-weight: 800; text-transform: uppercase; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #f0b429; }
+.is-online .status-dot { background: #1fa774; }
+.is-offline .status-dot { background: #d84d4d; }
+.metric-card, .workflow-card, .empty-state { border: 1px solid #e6ebf1; border-radius: 14px; background: #fff; box-shadow: 0 10px 30px rgba(23, 42, 66, .05); }
+.metric-card { display: grid; min-height: 150px; padding: 20px; }
+.metric-card > span { color: #6e7b8b; font-weight: 700; }
+.metric-card strong { align-self: center; color: #10243d; font-size: 2.3rem; }
+.metric-card small { color: #9aa6b3; }
+.workflow-card { padding: 26px; }
+.workflow-card h2 { margin: 4px 0 24px; font-size: 1.25rem; }
+.workflow-steps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 0; padding: 0; list-style: none; counter-reset: workflow; }
+.workflow-steps li { position: relative; padding: 42px 12px 14px; border-radius: 10px; color: #42546a; background: #f3f7fa; font-size: .85rem; font-weight: 700; counter-increment: workflow; }
+.workflow-steps li::before { content: counter(workflow); position: absolute; top: 12px; left: 12px; display: grid; width: 23px; height: 23px; place-items: center; border-radius: 50%; color: #fff; background: #2d8c80; font-size: .72rem; }
+.empty-state { padding: 64px 32px; text-align: center; }
+.empty-state span { color: #2d8c80; font-size: .75rem; font-weight: 900; letter-spacing: .14em; }
+.empty-state h2 { margin: 12px 0; color: #10243d; }
+.empty-state p { margin: 0; color: #718094; }
+
+@media (max-width: 900px) {
+  .sidebar { position: static; width: 100%; min-height: auto; }
+  .sidebar-note { display: none; }
+  .app-shell { display: block; }
+  .content { margin-left: 0; }
+  .workflow-steps { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 576px) {
+  .topbar { padding: 0 20px; }
+  .topbar small, .role-badge { display: none; }
+  .page-container { padding: 30px 20px; }
+  .page-heading { display: grid; }
+  .workflow-steps { grid-template-columns: 1fr; }
+}
+
