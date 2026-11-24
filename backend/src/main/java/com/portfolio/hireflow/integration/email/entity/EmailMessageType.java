@@ -1,0 +1,3 @@
+package com.portfolio.hireflow.integration.email.entity;
+public enum EmailMessageType { APPLICATION_RECEIVED, INTERVIEW_SLOT_INVITATION, INTERVIEW_CONFIRMED,
+ OFFER_SENT, OFFER_EXPIRING, OFFER_ACCEPTED, OFFER_DECLINED }

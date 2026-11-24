@@ -1,0 +1,11 @@
+package com.portfolio.hireflow.integration.calendar.service;
+import java.util.*;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;import org.springframework.http.MediaType;import org.springframework.stereotype.Service;import org.springframework.web.client.RestClient;import com.portfolio.hireflow.interview.entity.Interview;
+@Service @ConditionalOnProperty(name="app.google-calendar.enabled",havingValue="true")
+public class GoogleCalendarApiService{
+ private static final String URL="https://www.googleapis.com/calendar/v3/calendars/primary/events";private final GoogleCalendarOAuthService oauth;private final RestClient client=RestClient.create();
+ public GoogleCalendarApiService(GoogleCalendarOAuthService oauth){this.oauth=oauth;}
+ @SuppressWarnings("unchecked") public String create(Long userId,Interview i){Map<String,Object> r=client.post().uri(URL).headers(h->h.setBearerAuth(oauth.validAccessToken(userId))).contentType(MediaType.APPLICATION_JSON).body(body(i)).retrieve().body(Map.class);if(r==null||r.get("id")==null)throw new IllegalStateException("Google Calendar 未回傳事件 ID");return r.get("id").toString();}
+ public void update(Long userId,String eventId,Interview i){client.put().uri(URL+"/{id}",eventId).headers(h->h.setBearerAuth(oauth.validAccessToken(userId))).contentType(MediaType.APPLICATION_JSON).body(body(i)).retrieve().toBodilessEntity();}
+ public void delete(Long userId,String eventId){client.delete().uri(URL+"/{id}",eventId).headers(h->h.setBearerAuth(oauth.validAccessToken(userId))).retrieve().onStatus(s->s.value()==404||s.value()==410,(q,r)->{}).toBodilessEntity();}
+ private Map<String,Object> body(Interview i){String candidate=i.getApplication().getCandidate().getFullName();String job=i.getApplication().getJobOpening().getJobTitle();Map<String,Object> m=new LinkedHashMap<>();m.put("summary","HireFlow 面試｜"+candidate+"｜"+job);m.put("description","HireFlow 內部招募面試，應徵編號 #"+i.getApplication().getId()+"，第 "+i.getRoundNumber()+" 輪。請勿轉寄候選人資料。");if(i.getLocation()!=null)m.put("location",i.getLocation());m.put("start",Map.of("dateTime",i.getStartsAt().toString(),"timeZone","Asia/Taipei"));m.put("end",Map.of("dateTime",i.getEndsAt().toString(),"timeZone","Asia/Taipei"));m.put("reminders",Map.of("useDefault",false,"overrides",List.of(Map.of("method","popup","minutes",30))));return m;}
+}

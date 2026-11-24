@@ -2,15 +2,20 @@
 import { onMounted, ref } from 'vue'
 
 import { getHealth } from '@/services/healthService'
+import { getApplications } from '@/services/candidateService'
+import { getInterviews } from '@/services/interviewService'
+import { getRequisitions } from '@/services/requisitionService'
+import { useAuthStore } from '@/stores/auth'
 
 const apiStatus = ref('checking')
+const authStore = useAuthStore()
 
-const cards = [
+const cards = ref([
   { label: '待審核需求', value: '0', helper: 'Day 3 串接資料' },
-  { label: '本週面試', value: '0', helper: 'Day 5 串接資料' },
-  { label: '待填評分', value: '0', helper: '依登入者篩選' },
-  { label: '流程中人選', value: '0', helper: 'Day 4 串接資料' },
-]
+  { label: '未來七天面試', value: '0', helper: '依登入者資料範圍顯示' },
+  { label: '待填評分', value: '0', helper: '只計算指派給我的面試' },
+  { label: '流程中人選', value: '0', helper: '目前進行中的應徵紀錄' },
+])
 
 onMounted(async () => {
   try {
@@ -18,6 +23,44 @@ onMounted(async () => {
     apiStatus.value = 'online'
   } catch {
     apiStatus.value = 'offline'
+  }
+
+  if (authStore.hasAnyRole(['HR', 'HIRING_MANAGER'])) {
+    try {
+      const result = await getRequisitions({ status: 'SUBMITTED', page: 0, size: 1 })
+      cards.value[0].value = String(result.totalElements)
+      cards.value[0].helper = '目前等待 HR 審核'
+    } catch {
+      cards.value[0].helper = '暫時無法取得資料'
+    }
+
+    try {
+      const activeStages = ['NEW', 'SCREENING', 'INTERVIEW_SCHEDULED', 'INTERVIEWED', 'DECISION_PENDING']
+      const results = await Promise.all(activeStages.map((stage) => getApplications({ stage, page: 0, size: 1 })))
+      cards.value[3].value = String(results.reduce((total, result) => total + result.totalElements, 0))
+    } catch {
+      cards.value[3].helper = '暫時無法取得資料'
+    }
+  }
+
+  if (authStore.hasAnyRole(['HR', 'HIRING_MANAGER', 'INTERVIEWER'])) {
+    try {
+      const from = new Date()
+      const to = new Date(from)
+      to.setDate(to.getDate() + 7)
+      const result = await getInterviews({
+        status: 'SCHEDULED',
+        from: from.toISOString(),
+        to: to.toISOString(),
+        page: 0,
+        size: 100,
+      })
+      cards.value[1].value = String(result.totalElements)
+      cards.value[2].value = String(result.content.filter((item) => item.canScore).length)
+    } catch {
+      cards.value[1].helper = '暫時無法取得資料'
+      cards.value[2].helper = '暫時無法取得資料'
+    }
   }
 })
 </script>
@@ -27,8 +70,8 @@ onMounted(async () => {
     <div class="page-heading">
       <div>
         <p class="eyebrow">OVERVIEW</p>
-        <h1>招募流程儀表板</h1>
-        <p>第一週先用清楚、可驗收的流程證明後端設計能力。</p>
+        <h1>{{ authStore.user?.displayName }}，歡迎回來</h1>
+        <p>{{ authStore.user?.department }} · 依你的角色顯示可操作模組。</p>
       </div>
       <div class="api-status" :class="`is-${apiStatus}`">
         <span class="status-dot"></span>

@@ -1,0 +1,2 @@
+package com.portfolio.hireflow.integration.calendar.repository;import java.util.Optional;import org.springframework.data.jpa.repository.JpaRepository;import com.portfolio.hireflow.integration.calendar.entity.GoogleCalendarConnection;
+public interface GoogleCalendarConnectionRepository extends JpaRepository<GoogleCalendarConnection,Long>{Optional<GoogleCalendarConnection> findByUserId(Long userId);boolean existsByUserId(Long userId);void deleteByUserId(Long userId);}
