@@ -16,7 +16,7 @@
 2. Calendar：真實授權、事件新增／取消與改期的同步工作已通過，詳見下方補充紀錄。
 3. 權限：跨部門應徵資料及非指派面試的拒絕存取已有整合測試；瀏覽器另驗證面試官不顯示公司管理操作。
 4. 前端：公開職缺、求職者進度、Offer 完整流程及主要手機版面已驗證；截圖只含虛構展示資料。
-5. 遠端：commit `ee58d24` 的 GitHub Actions backend、frontend、postgres 三個工作已全部通過。本次改期提交仍需確認新一輪 CI。
+5. 遠端：改期提交 `8a9b2a1` 的 [GitHub Actions #6](https://github.com/tsaoworkspace-hub/HireFlow/actions/runs/45785617241) 已確認 backend、frontend、postgres 三個工作全部通過。
 
 ## 2026-11-26 補充驗收
 
