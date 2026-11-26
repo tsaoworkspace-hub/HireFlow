@@ -5,6 +5,9 @@ on:
     branches: [ main, 'codex/**' ]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   backend:
     runs-on: ubuntu-latest
@@ -18,7 +21,7 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
-      - run: ./mvnw test
+      - run: bash ./mvnw test
 
   frontend:
     runs-on: ubuntu-latest
@@ -35,3 +38,36 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: hireflow_ci
+          POSTGRES_USER: hireflow_ci
+          POSTGRES_PASSWORD: hireflow_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      HIREFLOW_POSTGRES_TEST: 'true'
+      HIREFLOW_DB_URL: jdbc:postgresql://localhost:5432/hireflow_ci
+      HIREFLOW_DB_USERNAME: hireflow_ci
+      HIREFLOW_DB_PASSWORD: hireflow_ci
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - run: bash ./mvnw -Dtest=PostgresMigrationIntegrationTests test
