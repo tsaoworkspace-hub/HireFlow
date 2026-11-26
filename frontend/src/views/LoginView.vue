@@ -82,7 +82,7 @@ async function submit() {
     </section>
 
     <aside class="login-story">
-      <p class="eyebrow">DAY 2</p>
+      <p class="eyebrow">ROLE-BASED ACCESS</p>
       <h2>每個角色，只看見該做的事</h2>
       <p>登入狀態保存在伺服器 Session；即使繞過前端畫面，後端仍會再次驗證權限。</p>
       <ul>

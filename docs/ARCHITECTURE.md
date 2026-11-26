@@ -2,14 +2,14 @@
 
 ## 系統邊界
 
-第一週 MVP 只完成一條可驗收的招募主流程：
+系統以完整的招募主流程串接各功能：
 
 ```text
 建立人力需求 → HR 核准 → 建立職缺 → 建立應徵紀錄
 → 安排面試 → 面試官評分 → 用人主管決策 → Audit Log
 ```
 
-Calendar、Email、Redis、Offer 電子簽核與 AI 排在第二階段。
+公司行事曆、Google Calendar、Email 通知及 Offer 回覆與招募主流程整合。
 
 ## Backend 分層
 

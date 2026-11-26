@@ -11,7 +11,7 @@ const apiStatus = ref('checking')
 const authStore = useAuthStore()
 
 const cards = ref([
-  { label: '待審核需求', value: '0', helper: 'Day 3 串接資料' },
+  { label: '待審核需求', value: '0', helper: '等待 HR 審核的人力需求' },
   { label: '未來七天面試', value: '0', helper: '依登入者資料範圍顯示' },
   { label: '待填評分', value: '0', helper: '只計算指派給我的面試' },
   { label: '流程中人選', value: '0', helper: '目前進行中的應徵紀錄' },

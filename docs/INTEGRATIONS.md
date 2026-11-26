@@ -1,6 +1,6 @@
-# Day 10–13：面試協調、Email 與 Google Calendar
+# 面試協調、Email 與 Google Calendar
 
-## Day 10：面試時段與公司行事曆
+## 面試時段與公司行事曆
 
 - HR 可針對 Application 建立多個候選面試時段。
 - 求職者在原本的安全進度頁選擇一個時段；確認後才建立正式 Interview。
@@ -8,7 +8,7 @@
 - 其他未選時段自動改為 `WITHDRAWN`。
 - HR／ADMIN 可查看全部面試；主管只看自己部門；純面試官只看指派給自己的行程。
 
-## Day 11：Email Outbox 與 Gmail
+## Email Outbox 與 Gmail
 
 核心交易只建立 `email_deliveries` 工作，不直接等待 Gmail。背景 Dispatcher 負責寄送，失敗後以 1 分鐘、5 分鐘間隔重試，三次後標示 FAILED，HR 可在整合中心人工重試。
 
@@ -29,7 +29,7 @@ Gmail 帳號應使用 App Password，不要把一般登入密碼或 App Password
 
 派送程式改用 `TransactionTemplate` 明確建立每筆獨立交易，避免同類別呼叫繞過 `@Transactional` 代理。工作先取得資料列鎖並重新確認狀態，成功／失敗結果在交易結束時提交；已完成或尚未到重試時間的工作直接跳過。外部 SMTP／Google 呼叫不屬於資料庫交易，程序中斷時仍需考慮重複派送，詳見 `PUBLIC_RELEASE_CHECKLIST.md`。
 
-## Day 12：Google Calendar
+## Google Calendar
 
 1. 在 Google Cloud 建立 OAuth 2.0 Web Application。
 2. 啟用 Google Calendar API。
@@ -64,7 +64,7 @@ Google 官方參考：
 - https://developers.google.com/identity/protocols/oauth2/web-server
 - https://developers.google.com/workspace/calendar/api/v3/reference/events/insert
 
-## Day 13：整合管理與失敗隔離
+## 整合管理與失敗隔離
 
 - `/integrations`：個人連結／解除 Google Calendar。
 - HR／ADMIN 可查看 Email Delivery 與 Calendar Sync Job。

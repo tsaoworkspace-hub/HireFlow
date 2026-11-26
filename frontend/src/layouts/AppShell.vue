@@ -51,8 +51,8 @@ async function handleLogout() {
       </nav>
 
       <div class="sidebar-note">
-        <strong>Week 1 MVP</strong>
-        <span>先完成完整流程，再增加整合功能。</span>
+        <strong>HireFlow</strong>
+        <span>招募流程與面試協作平台</span>
       </div>
     </aside>
 

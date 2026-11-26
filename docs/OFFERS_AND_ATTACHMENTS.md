@@ -1,6 +1,6 @@
-# Day 14：Offer 結案與 PDF 履歷附件
+# Offer 結案與 PDF 履歷附件
 
-Day 14 將「錄取決策」延伸成可結案的 Offer 流程，並讓求職者在安全入口更新 PDF 履歷。這個階段仍以本機作品功能為主，未進入正式部署或展示資料整理。
+Offer 將「錄取決策」延伸成可結案的流程，並讓求職者在安全入口更新 PDF 履歷。
 
 ## Offer 流程
 
@@ -75,7 +75,7 @@ RESUME_MAX_FILE_SIZE=5MB
 RESUME_MAX_REQUEST_SIZE=6MB
 ```
 
-Offer Email 實際寄送仍沿用 Day 11 的 `APP_MAIL_ENABLED` 與 Gmail SMTP 設定。
+Offer Email 實際寄送使用 `APP_MAIL_ENABLED` 與 Gmail SMTP 設定，詳見 [整合設定](INTEGRATIONS.md)。
 
 ## 驗收與開發環境
 

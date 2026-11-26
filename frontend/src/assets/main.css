@@ -87,7 +87,7 @@ a { text-decoration: none; }
 .forbidden-state h1 { color: #10243d; font-size: 1.7rem; }
 .inline-button { display: inline-grid; margin-top: 24px; padding: 0 18px; }
 
-/* Public careers and candidate portal (Day 8-9) */
+/* Public careers and candidate portal */
 .public-shell { min-height: 100vh; color: #17304a; background: #f7fafc; }
 .public-header { display: flex; align-items: center; justify-content: space-between; height: 72px; padding: 0 max(24px, calc((100vw - 1120px) / 2)); border-bottom: 1px solid #e1e9ee; background: rgba(255,255,255,.95); }
 .public-brand { display: flex; align-items: center; gap: 10px; color: #10243d; font-weight: 900; }
@@ -329,7 +329,7 @@ a { text-decoration: none; }
 .audit-filter { grid-template-columns: minmax(260px, 1fr) minmax(220px, .7fr) auto; }
 .audit-filter .primary-button { min-height: 42px; padding: 0 18px; align-self: end; }
 
-/* Offer closure and PDF resume (Day 14) */
+/* Offer closure and PDF resume */
 .offer-form { display: grid; gap: 20px; margin-bottom: 22px; }
 .offer-form label { display: grid; gap: 7px; color: #34475d; font-size: .84rem; font-weight: 800; }
 .offer-form input, .offer-form select, .offer-form textarea, .offer-decline textarea { width: 100%; padding: 11px 12px; border: 1px solid #ccd6e1; border-radius: 8px; color: #182230; background: #fff; font: inherit; }

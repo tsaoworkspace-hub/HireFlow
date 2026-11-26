@@ -135,7 +135,7 @@ HireFlow/
 │   ├── src/services/
 │   ├── src/stores/
 │   └── tests/
-├── docs/                        # 各階段功能與驗收文件
+├── docs/                        # 功能、設定與驗收文件
 ├── .github/workflows/           # CI
 ├── compose.yaml                 # 本機 PostgreSQL
 └── README.md
@@ -231,15 +231,7 @@ $env:HIREFLOW_SMTP_TEST='true'
 Remove-Item Env:HIREFLOW_SMTP_TEST
 ```
 
-## 完成階段
-
-- Day 1–2：Monorepo、PostgreSQL、Flyway、Session 登入、CSRF 與角色權限。
-- Day 3–6：人力需求、職缺、應徵者、招募看板、面試、評分、錄取決策與 Audit Log。
-- Day 7–9：CI、OpenAPI、公開職缺、求職表單、安全查詢連結與進度時間軸。
-- Day 10–13：面試選時、部門行事曆、Email Outbox、Gmail、Google Calendar 與整合中心。
-- Day 14：Offer 簽核與回覆、到期提醒，以及安全的 PDF 履歷附件。
-
-詳細功能與設定說明位於 [`docs/`](docs/)；Day 10–13 外部整合設定見 [`docs/DAY10-13.md`](docs/DAY10-13.md)，Day 14 Offer 與附件見 [`docs/DAY14.md`](docs/DAY14.md)。
+詳細功能與設定說明位於 [`docs/`](docs/)；外部整合設定見 [`整合設定`](docs/INTEGRATIONS.md)，Offer 與附件見 [`Offer 與 PDF 履歷`](docs/OFFERS_AND_ATTACHMENTS.md)。
 
 ## 專案說明
 

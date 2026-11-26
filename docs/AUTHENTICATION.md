@@ -1,4 +1,4 @@
-# Day 2 Checklist
+# 登入驗證與權限
 
 ## 已完成
 
@@ -21,6 +21,3 @@ Authentication 回答「目前是誰」，登入成功後由 Spring Security 將
 - BCrypt：同一密碼每次產生不同雜湊，資料庫不保存可還原的明文密碼。
 - CSRF：避免其他網站利用瀏覽器既有 Session 冒用使用者送出狀態修改請求。
 
-## 下一步
-
-Day 3 實作人力需求的 DRAFT、SUBMITTED、APPROVED、RETURNED 與 REJECTED 狀態，以及核准時同一交易建立 OPEN 職缺。
