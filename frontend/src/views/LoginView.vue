@@ -1,6 +1,6 @@
 <script setup>
 import { reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import { useAuthStore } from '@/stores/auth'
 
@@ -40,14 +40,10 @@ async function submit() {
 </script>
 
 <template>
-  <main class="login-page">
+  <div class="login-page">
     <section class="login-panel">
-      <div class="login-brand">
-        <span class="brand-mark">H</span>
-        <span>HireFlow</span>
-      </div>
-      <p class="eyebrow">SECURE WORKSPACE</p>
-      <h1>登入招募工作台</h1>
+      <p class="eyebrow">企業工作台</p>
+      <h1>歡迎回到 HireFlow</h1>
       <p class="login-intro">使用 Demo 帳號體驗不同角色的導覽與權限。</p>
 
       <form class="login-form" @submit.prevent="submit">
@@ -79,17 +75,14 @@ async function submit() {
         </div>
         <small>共用密碼：HireFlow123!</small>
       </div>
+      <p class="login-candidate-link">想應徵職缺？<RouterLink to="/careers">前往招募頁面 →</RouterLink></p>
     </section>
 
     <aside class="login-story">
-      <p class="eyebrow">ROLE-BASED ACCESS</p>
-      <h2>每個角色，只看見該做的事</h2>
-      <p>登入狀態保存在伺服器 Session；即使繞過前端畫面，後端仍會再次驗證權限。</p>
-      <ul>
-        <li>未登入受保護 API 回傳 401</li>
-        <li>角色不足回傳 403</li>
-        <li>密碼使用 BCrypt 雜湊保存</li>
-      </ul>
+      <p class="eyebrow">HIRING, MADE CLEAR</p>
+      <h2>讓每一步招募，<br>都有清楚的進度。</h2>
+      <p>從職缺、應徵到面試與決策，團隊在同一個工作台協作。</p>
+      <RouterLink class="login-story-link" to="/careers">查看公開職缺 <span aria-hidden="true">↗</span></RouterLink>
     </aside>
-  </main>
+  </div>
 </template>

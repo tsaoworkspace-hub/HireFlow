@@ -82,12 +82,23 @@ public class JobOfferService {
         this.frontendBaseUrl = frontendBaseUrl;
     }
 
-    public PageResponse<JobOfferResponse> findAll(String emailAddress, Pageable pageable) {
+    public PageResponse<JobOfferResponse> findAll(String emailAddress, String keyword,
+            JobOfferStatus status, Pageable pageable) {
         AppUser actor = actor(emailAddress);
-        Page<JobOffer> page = allDepartments(actor)
-                ? offers.findAllByOrderByUpdatedAtDesc(pageable)
-                : offers.findByApplicationJobOpeningDepartmentIdOrderByUpdatedAtDesc(
-                        departmentId(actor), pageable);
+        Specification<JobOffer> scope = (root, query, builder) -> allDepartments(actor)
+                ? builder.conjunction()
+                : builder.equal(root.get("application").get("jobOpening").get("department").get("id"), departmentId(actor));
+        if (keyword != null && !keyword.isBlank()) {
+            String term = "%" + keyword.trim().toLowerCase(java.util.Locale.ROOT) + "%";
+            scope = scope.and((root, query, builder) -> builder.or(
+                    builder.like(builder.lower(root.get("application").get("candidate").get("fullName")), term),
+                    builder.like(builder.lower(root.get("application").get("candidate").get("email")), term),
+                    builder.like(builder.lower(root.get("application").get("jobOpening").get("jobTitle")), term)));
+        }
+        if (status != null) {
+            scope = scope.and((root, query, builder) -> builder.equal(root.get("status"), status));
+        }
+        Page<JobOffer> page = offers.findAll(scope, pageable);
         return PageResponse.from(page.map(offer -> response(offer, actor, false)));
     }
 

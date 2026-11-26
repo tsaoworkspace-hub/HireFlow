@@ -51,8 +51,8 @@ onMounted(load)
     <article class="data-card">
       <div v-if="loading" class="table-state">載入職缺中…</div>
       <div v-else-if="!page.content.length" class="table-state">目前沒有符合條件的職缺</div>
-      <div v-else class="table-scroll"><table class="data-table"><thead><tr><th>職稱</th><th>部門</th><th>名額</th><th>應徵數</th><th>負責 HR</th><th>狀態</th><th></th></tr></thead><tbody>
-        <tr v-for="item in page.content" :key="item.id"><td><strong>{{ item.jobTitle }}</strong><small>#{{ item.id }}</small></td><td>{{ item.departmentName }}</td><td>{{ item.headcount }}</td><td>{{ item.applicationCount }}</td><td>{{ item.responsibleHrName }}</td><td><span class="status-badge" :class="item.status === 'OPEN' ? 'status-approved' : 'status-draft'">{{ item.status === 'OPEN' ? '招募中' : '已關閉' }}</span></td><td><button v-if="item.status === 'OPEN' && auth.hasAnyRole(['HR'])" class="danger-button" type="button" @click="closeOpening(item)">關閉</button></td></tr>
+      <div v-else class="table-scroll"><table class="data-table"><thead><tr><th>編號</th><th>職稱</th><th>部門</th><th>名額</th><th>應徵數</th><th>負責 HR</th><th>狀態</th><th></th></tr></thead><tbody>
+        <tr v-for="item in page.content" :key="item.id"><td class="row-id">#{{ item.id }}</td><td><strong>{{ item.jobTitle }}</strong></td><td>{{ item.departmentName }}</td><td>{{ item.headcount }}</td><td>{{ item.applicationCount }}</td><td>{{ item.responsibleHrName }}</td><td><span class="status-badge" :class="item.status === 'OPEN' ? 'status-approved' : 'status-draft'">{{ item.status === 'OPEN' ? '招募中' : '已關閉' }}</span></td><td><button v-if="item.status === 'OPEN' && auth.hasAnyRole(['HR'])" class="danger-button" type="button" @click="closeOpening(item)">關閉</button></td></tr>
       </tbody></table></div>
     </article>
   </section>

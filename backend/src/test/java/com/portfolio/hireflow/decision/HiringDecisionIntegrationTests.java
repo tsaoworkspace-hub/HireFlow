@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -129,6 +130,27 @@ class HiringDecisionIntegrationTests {
                 new CreateDecisionRequest(DecisionResult.HIRED, "重複決策", before.applicationVersion())))
                 .isInstanceOf(ConflictException.class)
                 .hasMessageContaining("已經完成");
+    }
+
+    @Test
+    void decisionSearchIncludesFinalRejectionButExcludesScreeningRejection() {
+        Department department = user(MANAGER_EMAIL).getDepartment();
+        ApplicationResponse screeningRejection = newApplication(department);
+        candidateService.transition(screeningRejection.id(), HR_EMAIL,
+                new TransitionApplicationRequest(ApplicationStage.SCREENING, null));
+        candidateService.transition(screeningRejection.id(), HR_EMAIL,
+                new TransitionApplicationRequest(ApplicationStage.REJECTED, "初審未通過"));
+
+        ApplicationResponse finalRejection = readyApplication(department);
+        DecisionViewResponse before = decisionService.findDecisionView(finalRejection.id(), MANAGER_EMAIL);
+        decisionService.decide(finalRejection.id(), MANAGER_EMAIL,
+                new CreateDecisionRequest(DecisionResult.REJECTED, "面試評分未達要求", before.applicationVersion()));
+
+        var results = candidateService.findApplications(HR_EMAIL, ApplicationStage.REJECTED,
+                null, "決策測試人選", true, PageRequest.of(0, 50));
+        assertThat(results.content()).extracting(ApplicationResponse::id)
+                .contains(finalRejection.id())
+                .doesNotContain(screeningRejection.id());
     }
 
     private ApplicationResponse readyApplication(Department department) {

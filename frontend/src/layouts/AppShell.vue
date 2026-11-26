@@ -16,8 +16,8 @@ const navigation = [
   { to: '/applications', label: '應徵流程', roles: ['HR', 'HIRING_MANAGER'] },
   { to: '/interviews', label: '面試', roles: ['HR', 'HIRING_MANAGER', 'INTERVIEWER'] },
   { to: '/calendar', label: '公司行事曆', roles: ['HR', 'HIRING_MANAGER', 'INTERVIEWER'] },
-  { to: '/integrations', label: '整合中心', roles: ['HR', 'HIRING_MANAGER', 'INTERVIEWER'] },
-  { to: '/decisions', label: '錄取決策', roles: ['HR', 'HIRING_MANAGER'] },
+  { to: '/integrations', label: '通知與同步紀錄', roles: ['HR', 'HIRING_MANAGER', 'INTERVIEWER'] },
+  { to: '/decisions', label: '招募決策', roles: ['HR', 'HIRING_MANAGER'] },
   { to: '/offers', label: 'Offer 管理', roles: ['HR', 'HIRING_MANAGER'] },
   { to: '/admin/audit-logs', label: '稽核紀錄', roles: ['ADMIN'] },
 ]

@@ -14,6 +14,10 @@ const saving = ref(false)
 const error = ref('')
 const message = ref('')
 const form = reactive({ result: 'HIRED', reason: '' })
+const search = reactive({ keyword: '', stage: '' })
+const pageNumber = ref(0)
+const hasMore = ref(false)
+const visibleApplications = computed(() => applications.value)
 
 const stageLabels = {
   INTERVIEWED: '面試完成', DECISION_PENDING: '待決策',
@@ -32,17 +36,21 @@ const canPrepare = computed(() =>
 async function loadApplications() {
   error.value = ''
   try {
-    const page = await getApplications({ size: 200, sort: 'updatedAt,desc' })
+    const page = await getApplications({ keyword: search.keyword || undefined, stage: search.stage || undefined, decisionOnly: true, page: pageNumber.value, size: 50, sort: 'updatedAt,desc' })
+    hasMore.value = !page.last
     const visibleStages = ['INTERVIEWED', 'DECISION_PENDING', 'HIRED', 'ON_HOLD', 'REJECTED']
     applications.value = page.content.filter((item) => visibleStages.includes(item.stage))
-    if (!selectedId.value && applications.value.length) {
-      selectedId.value = String(applications.value[0].id)
+    if (!applications.value.some(item => String(item.id) === selectedId.value)) {
+      selectedId.value = applications.value.length ? String(applications.value[0].id) : ''
       await loadDecisionView()
     }
   } catch (e) {
     error.value = e.response?.data?.message || '無法取得待決策資料'
   }
 }
+
+function searchApplications() { pageNumber.value = 0; selectedId.value = ''; loadApplications() }
+function changePage(delta) { pageNumber.value += delta; selectedId.value = ''; loadApplications() }
 
 async function loadDecisionView() {
   if (!selectedId.value) {
@@ -86,7 +94,7 @@ async function submitDecision() {
       reason: form.reason,
       applicationVersion: selected.value.applicationVersion,
     })
-    message.value = '最終錄取決策已建立'
+    message.value = '最終招募決策已建立'
     form.reason = ''
     await loadApplications()
   } catch (e) {
@@ -104,19 +112,21 @@ onMounted(loadApplications)
     <div class="page-heading">
       <div>
         <p class="eyebrow">HIRING DECISIONS</p>
-        <h1>錄取決策</h1>
-        <p>彙整已送出的面試評分，並由用人主管完成不可重複的最終決策。</p>
+        <h1>招募決策</h1>
+        <p>彙整面試評分，由用人主管決定錄取、保留或未錄取。</p>
       </div>
     </div>
 
     <p v-if="message" class="alert-message is-success">{{ message }}</p>
     <p v-if="error" class="alert-message is-error">{{ error }}</p>
 
+    <form class="filter-card decision-search" @submit.prevent="searchApplications"><label><span>搜尋案件</span><input v-model.trim="search.keyword" placeholder="姓名、Email 或職缺" /></label><label><span>狀態</span><select v-model="search.stage"><option value="">全部狀態</option><option v-for="(label, stage) in stageLabels" :key="stage" :value="stage">{{ label }}</option></select></label><button class="primary-button page-action">查詢</button></form>
+
     <div class="decision-layout">
       <aside class="data-card decision-list">
-        <header><strong>決策案件</strong><span>{{ applications.length }}</span></header>
+        <header><strong>決策案件</strong><span>{{ visibleApplications.length }}</span></header>
         <button
-          v-for="item in applications"
+          v-for="item in visibleApplications"
           :key="item.id"
           type="button"
           :class="['decision-list-item', { active: Number(selectedId) === item.id }]"
@@ -126,7 +136,8 @@ onMounted(loadApplications)
           <small>{{ item.jobTitle }} · {{ item.departmentName }}</small>
           <span class="status-badge">{{ stageLabels[item.stage] || item.stage }}</span>
         </button>
-        <div v-if="!applications.length" class="table-state">目前沒有面試完成或待決策案件</div>
+        <div v-if="!visibleApplications.length" class="table-state">沒有符合條件的案件</div>
+        <div class="list-pagination"><button type="button" :disabled="pageNumber === 0" @click="changePage(-1)">上一頁</button><span>第 {{ pageNumber + 1 }} 頁</span><button type="button" :disabled="!hasMore" @click="changePage(1)">下一頁</button></div>
       </aside>
 
       <main class="decision-main">
@@ -161,13 +172,12 @@ onMounted(loadApplications)
 
           <article v-if="selected.decision" class="detail-card decision-result-card">
             <p class="eyebrow">FINAL DECISION</p>
-            <h2>{{ resultLabels[selected.decision.result] }}</h2>
-            <blockquote>{{ selected.decision.reason }}</blockquote>
-            <small>{{ selected.decision.decidedByName }} · {{ new Date(selected.decision.decidedAt).toLocaleString('zh-TW') }}</small>
+            <div class="decision-result-layout"><span class="decision-result-icon" aria-hidden="true">{{ selected.decision.result === 'HIRED' ? '✓' : selected.decision.result === 'REJECTED' ? '×' : '—' }}</span><div><h2>{{ resultLabels[selected.decision.result] }}</h2><p>決策人：{{ selected.decision.decidedByName }} · {{ new Date(selected.decision.decidedAt).toLocaleString('zh-TW') }}</p></div></div>
+            <div class="decision-reason"><strong>決策說明</strong><p>{{ selected.decision.reason }}</p></div>
           </article>
 
           <form v-else-if="selected.canDecide" class="form-card decision-form" @submit.prevent="submitDecision">
-            <p class="eyebrow">FINAL DECISION</p><h2>建立最終決策</h2>
+            <p class="eyebrow">FINAL DECISION</p><h2>建立招募決策</h2>
             <label><span>決策結果</span><select v-model="form.result"><option value="HIRED">錄取</option><option value="ON_HOLD">保留</option><option value="REJECTED">不錄取</option></select></label>
             <label><span>決策說明</span><textarea v-model.trim="form.reason" rows="5" maxlength="2000" required placeholder="請說明決策依據；送出後不可修改。" /></label>
             <button class="primary-button" type="submit" :disabled="saving">{{ saving ? '送出中…' : '送出最終決策' }}</button>

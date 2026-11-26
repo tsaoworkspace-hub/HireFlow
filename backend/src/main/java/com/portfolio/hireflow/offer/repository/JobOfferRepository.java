@@ -9,11 +9,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import com.portfolio.hireflow.offer.entity.JobOffer;
 import com.portfolio.hireflow.offer.entity.JobOfferStatus;
 
-public interface JobOfferRepository extends JpaRepository<JobOffer, Long> {
+public interface JobOfferRepository extends JpaRepository<JobOffer, Long>, JpaSpecificationExecutor<JobOffer> {
     boolean existsByApplicationId(Long applicationId);
 
     @EntityGraph(attributePaths = {

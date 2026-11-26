@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import com.portfolio.hireflow.common.response.ApiResponse;
 import com.portfolio.hireflow.common.response.PageResponse;
 import com.portfolio.hireflow.offer.dto.*;
+import com.portfolio.hireflow.offer.entity.JobOfferStatus;
 import com.portfolio.hireflow.offer.service.JobOfferService;
 
 import jakarta.validation.Valid;
@@ -23,8 +24,10 @@ public class JobOfferController {
     public JobOfferController(JobOfferService service) { this.service = service; }
 
     @GetMapping
-    public ApiResponse<PageResponse<JobOfferResponse>> findAll(Authentication authentication, Pageable pageable) {
-        return ApiResponse.ok("已取得 Offer 清單", service.findAll(authentication.getName(), pageable));
+    public ApiResponse<PageResponse<JobOfferResponse>> findAll(Authentication authentication,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) JobOfferStatus status, Pageable pageable) {
+        return ApiResponse.ok("已取得 Offer 清單", service.findAll(authentication.getName(), keyword, status, pageable));
     }
 
     @GetMapping("/options")

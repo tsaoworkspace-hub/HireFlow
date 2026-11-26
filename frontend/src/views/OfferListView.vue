@@ -17,6 +17,10 @@ const saving = ref(false)
 const error = ref('')
 const message = ref('')
 const editing = ref(false)
+const filters = reactive({ keyword: '', status: '' })
+const pageNumber = ref(0)
+const hasMore = ref(false)
+const visibleOffers = computed(() => offers.value)
 const canMaintain = computed(() => auth.hasAnyRole(['HR']))
 const form = reactive({ applicationId: '', annualSalary: '', currency: 'TWD', proposedStartDate: '', expiresAt: '', title: '錄取邀請', message: '', version: null })
 
@@ -49,10 +53,11 @@ async function load() {
   loading.value = true; error.value = ''
   try {
     const [page, offerOptions] = await Promise.all([
-      getOffers({ size: 100, sort: 'updatedAt,desc' }),
+      getOffers({ keyword: filters.keyword || undefined, status: filters.status || undefined, page: pageNumber.value, size: 50, sort: 'updatedAt,desc' }),
       canMaintain.value ? getOfferOptions() : Promise.resolve([]),
     ])
     offers.value = page.content
+    hasMore.value = !page.last
     options.value = offerOptions
     const selectedOptionStillExists = options.value.some(
       (item) => String(item.applicationId) === form.applicationId,
@@ -62,6 +67,9 @@ async function load() {
   } catch (exception) { error.value = exception.response?.data?.message || '無法取得 Offer 資料' }
   finally { loading.value = false }
 }
+
+function searchOffers() { pageNumber.value = 0; selected.value = null; load() }
+function changePage(delta) { pageNumber.value += delta; selected.value = null; load() }
 
 async function select(id) {
   error.value = ''
@@ -130,6 +138,7 @@ onMounted(load)
     <div class="page-heading"><div><p class="eyebrow">JOB OFFERS</p><h1>Offer 管理</h1><p>由 HR 建立草稿、用人主管核准，再寄給求職者線上回覆。</p></div></div>
     <p v-if="message" class="alert-message is-success">{{ message }}</p>
     <p v-if="error" class="alert-message is-error">{{ error }}</p>
+    <form class="filter-card offer-search" @submit.prevent="searchOffers"><label><span>搜尋 Offer</span><input v-model.trim="filters.keyword" placeholder="求職者、Email 或職缺" /></label><label><span>狀態</span><select v-model="filters.status"><option value="">全部狀態</option><option v-for="(label, status) in statusLabels" :key="status" :value="status">{{ label }}</option></select></label><button class="primary-button page-action">查詢</button></form>
 
     <form v-if="canMaintain && (options.length || editing)" class="form-card offer-form" @submit.prevent="save">
       <div class="card-heading"><div><p class="eyebrow">{{ editing ? 'EDIT OFFER' : 'NEW OFFER' }}</p><h2>{{ editing ? `修改 ${selected.candidateName} 的 Offer` : '建立 Offer 草稿' }}</h2></div><button v-if="editing" type="button" class="secondary-button" @click="resetForm">取消修改</button></div>
@@ -148,10 +157,11 @@ onMounted(load)
     <div v-if="loading" class="data-card table-state">載入 Offer 中…</div>
     <div v-else class="offer-layout">
       <aside class="data-card offer-list">
-        <button v-for="offer in offers" :key="offer.id" :class="{ active: selected?.id === offer.id }" @click="select(offer.id)">
+        <button v-for="offer in visibleOffers" :key="offer.id" :class="{ active: selected?.id === offer.id }" @click="select(offer.id)">
           <strong>{{ offer.candidateName }}</strong><small>{{ offer.jobTitle }} · {{ offer.departmentName }}</small><span class="status-badge">{{ statusLabels[offer.status] }}</span>
         </button>
-        <div v-if="!offers.length" class="table-state">目前沒有 Offer</div>
+        <div v-if="!visibleOffers.length" class="table-state">沒有符合條件的 Offer</div>
+        <div class="list-pagination"><button type="button" :disabled="pageNumber === 0" @click="changePage(-1)">上一頁</button><span>第 {{ pageNumber + 1 }} 頁</span><button type="button" :disabled="!hasMore" @click="changePage(1)">下一頁</button></div>
       </aside>
 
       <main v-if="selected" class="offer-detail">

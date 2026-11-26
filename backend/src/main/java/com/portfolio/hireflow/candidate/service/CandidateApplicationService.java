@@ -39,6 +39,7 @@ import com.portfolio.hireflow.common.exception.ResourceNotFoundException;
 import com.portfolio.hireflow.common.exception.UnauthorizedException;
 import com.portfolio.hireflow.common.response.PageResponse;
 import com.portfolio.hireflow.decision.service.DecisionReadinessPolicy;
+import com.portfolio.hireflow.decision.entity.HiringDecision;
 import com.portfolio.hireflow.requisition.entity.JobOpening;
 import com.portfolio.hireflow.requisition.entity.JobOpeningStatus;
 import com.portfolio.hireflow.requisition.repository.JobOpeningRepository;
@@ -140,6 +141,13 @@ public class CandidateApplicationService {
     public PageResponse<ApplicationResponse> findApplications(
             String email, ApplicationStage stage, Long openingId, String keyword, Pageable pageable
     ) {
+        return findApplications(email, stage, openingId, keyword, false, pageable);
+    }
+
+    public PageResponse<ApplicationResponse> findApplications(
+            String email, ApplicationStage stage, Long openingId, String keyword,
+            boolean decisionOnly, Pageable pageable
+    ) {
         AppUser actor = loadActor(email);
         Specification<Application> specification = (root, query, builder) -> builder.conjunction();
 
@@ -147,6 +155,20 @@ public class CandidateApplicationService {
             Long departmentId = requireDepartmentId(actor);
             specification = specification.and((root, query, builder) ->
                     builder.equal(root.get("jobOpening").get("department").get("id"), departmentId));
+        }
+        if (decisionOnly) {
+            specification = specification.and((root, query, builder) -> {
+                var decision = query.subquery(Long.class);
+                var decisionRoot = decision.from(HiringDecision.class);
+                decision.select(decisionRoot.get("id"));
+                decision.where(builder.equal(decisionRoot.get("application").get("id"), root.get("id")));
+                return builder.or(
+                        root.get("stage").in(ApplicationStage.INTERVIEWED,
+                                ApplicationStage.DECISION_PENDING, ApplicationStage.HIRED,
+                                ApplicationStage.ON_HOLD),
+                        builder.and(builder.equal(root.get("stage"), ApplicationStage.REJECTED),
+                                builder.exists(decision)));
+            });
         }
         if (stage != null) {
             specification = specification.and((root, query, builder) -> builder.equal(root.get("stage"), stage));
@@ -159,7 +181,8 @@ public class CandidateApplicationService {
             String pattern = "%" + keyword.trim().toLowerCase(Locale.ROOT) + "%";
             specification = specification.and((root, query, builder) -> builder.or(
                     builder.like(builder.lower(root.get("candidate").get("fullName")), pattern),
-                    builder.like(builder.lower(root.get("candidate").get("email")), pattern)
+                    builder.like(builder.lower(root.get("candidate").get("email")), pattern),
+                    builder.like(builder.lower(root.get("jobOpening").get("jobTitle")), pattern)
             ));
         }
 

@@ -92,7 +92,7 @@ onMounted(async () => {
     <article class="workflow-card">
       <div>
         <p class="eyebrow">MVP WORKFLOW</p>
-        <h2>從需求到錄取決策</h2>
+        <h2>從需求到招募決策</h2>
       </div>
       <ol class="workflow-steps">
         <li>建立需求</li>

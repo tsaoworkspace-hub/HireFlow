@@ -18,6 +18,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -141,6 +142,11 @@ class RecruitmentFlowIntegrationTests {
         assertThat(emailDeliveries.existsByDeduplicationKey("offer-sent-" + draft.id())).isTrue();
         assertThat(emailDeliveries.existsByDeduplicationKey(
                 "offer-response-" + draft.id() + "-ACCEPTED")).isTrue();
+        assertThat(offers.findAll(HR_EMAIL, candidate.email(), JobOfferStatus.ACCEPTED,
+                PageRequest.of(0, 10)).content()).extracting(offer -> offer.id())
+                .contains(draft.id());
+        assertThat(offers.findAll(HR_EMAIL, candidate.email(), JobOfferStatus.DRAFT,
+                PageRequest.of(0, 10)).content()).isEmpty();
     }
 
     private JobOpening opening(AppUser manager, AppUser hr) {

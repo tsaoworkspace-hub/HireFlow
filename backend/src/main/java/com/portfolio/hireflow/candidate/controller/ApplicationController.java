@@ -35,11 +35,12 @@ public class ApplicationController {
             @RequestParam(required = false) ApplicationStage stage,
             @RequestParam(required = false) Long jobOpeningId,
             @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "false") boolean decisionOnly,
             @PageableDefault(size = 100, sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable,
             Authentication authentication
     ) {
         return ApiResponse.ok("已取得應徵紀錄", service.findApplications(
-                authentication.getName(), stage, jobOpeningId, keyword, pageable));
+                authentication.getName(), stage, jobOpeningId, keyword, decisionOnly, pageable));
     }
 
     @GetMapping("/{id}")

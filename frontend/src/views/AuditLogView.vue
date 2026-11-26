@@ -15,7 +15,7 @@ const actionLabels = {
   APPLICATION_CREATED: '建立應徵', APPLICATION_STAGE_CHANGED: '變更應徵階段',
   INTERVIEW_SCHEDULED: '安排面試', INTERVIEW_CANCELLED: '取消面試',
   INTERVIEW_COMPLETED: '完成面試', SCORECARD_SUBMITTED: '送出評分',
-  SCORECARD_UNLOCKED: '解鎖評分', HIRING_DECISION_CREATED: '建立錄取決策',
+  SCORECARD_UNLOCKED: '解鎖評分', HIRING_DECISION_CREATED: '建立招募決策',
 }
 
 async function load(targetPage = filters.page) {
@@ -45,7 +45,7 @@ onMounted(() => load(0))
     <div class="page-heading"><div><p class="eyebrow">AUDIT TRAIL</p><h1>稽核紀錄</h1><p>重要流程操作與操作者皆由後端在同一交易中保存。</p></div></div>
     <form class="filter-card audit-filter" @submit.prevent="load(0)">
       <label><span>操作</span><select v-model="filters.action"><option value="">全部操作</option><option v-for="(label, value) in actionLabels" :key="value" :value="value">{{ label }}</option></select></label>
-      <label><span>目標類型</span><select v-model="filters.targetType"><option value="">全部類型</option><option value="REQUISITION">人力需求</option><option value="APPLICATION">應徵</option><option value="INTERVIEW">面試</option><option value="SCORECARD">評分</option><option value="HIRING_DECISION">錄取決策</option></select></label>
+      <label><span>目標類型</span><select v-model="filters.targetType"><option value="">全部類型</option><option value="REQUISITION">人力需求</option><option value="APPLICATION">應徵</option><option value="INTERVIEW">面試</option><option value="SCORECARD">評分</option><option value="HIRING_DECISION">招募決策</option></select></label>
       <button class="primary-button" type="submit">篩選</button>
     </form>
     <p v-if="error" class="alert-message is-error">{{ error }}</p>
