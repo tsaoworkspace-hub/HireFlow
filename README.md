@@ -24,6 +24,8 @@ HireFlow 是一個整合人力需求簽核、公開職缺、應徵者管理、�
 
 ![公司行事曆](docs/screenshots/calendar.jpg)
 
+![Google Calendar 新增與取消同步實測](docs/screenshots/calendar-integration.jpg)
+
 ## 核心功能一覽
 
 | 模組 | 主要功能 |
@@ -237,7 +239,7 @@ Remove-Item Env:HIREFLOW_SMTP_TEST
 
 - 此 Repository 是個人全端作品集，目前以本機可完整操作與測試為目標。
 - Google Calendar 與 Gmail 功能需要自行建立 OAuth／SMTP 憑證後才會實際呼叫外部服務。
-- Gmail 實際寄送已驗證；Google Calendar 真實帳號授權及同步仍待驗收。完整待辦與派送限制見 [`公開前驗收清單`](docs/PUBLIC_RELEASE_CHECKLIST.md)。
+- Gmail 實際寄送已驗證；Google Calendar 真實帳號授權、事件新增及取消同步已驗證。面試改期尚無公司端操作入口，不能視為已完成的端到端功能。完整待辦與派送限制見 [`公開前驗收清單`](docs/PUBLIC_RELEASE_CHECKLIST.md)。
 - 正式部署前仍需依實際網域、Secret Manager、TLS、物件儲存與資料庫環境調整設定。
 
 ---

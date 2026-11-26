@@ -13,10 +13,10 @@
 2026-11-25 已驗證：後端一般測試 48 項通過；Gmail SMTP 登入測試另外通過（未寄信）；獨立空白 PostgreSQL 17 的 migration／schema 測試通過；前端 18 項測試與 production build 通過。一般測試會跳過需手動啟用的 Gmail／PostgreSQL 測試。
 
 1. Gmail：在整合中心確認測試通知為 SENT，並檢查指定收件匣確實收到。
-2. Calendar：由公司使用者授權 Google；新增、調整及取消測試面試，確認自己的 Google Calendar 事件同步。
+2. Calendar：真實授權、事件新增與取消同步已通過。調整已排面試的公司端入口尚未實作；目前只有底層更新 API 與模擬測試，不能宣稱改期流程已驗收。
 3. 權限：跨部門主管不能看見對方履歷／面試；面試官只能存取被指派的資料。
 4. 前端：逐頁檢查求職入口、應徵時間軸、Offer 與手機排版，擷取去識別化畫面補到 README。
-5. 遠端：以 GitHub Actions 真正執行結果確認 CI，不能以本機成功代替。
+5. 遠端：commit `ee58d24` 的 GitHub Actions backend、frontend、postgres 三個工作已全部通過。
 
 ## 2026-11-26 補充驗收
 
@@ -26,6 +26,8 @@
 - 手機公開職缺頁以 390px 寬度檢查，文件寬度為 390px，未發現水平溢出；尚未逐一完成全部手機頁面及完整 Offer 瀏覽器流程。
 - 舊 GitHub CI 已確認 frontend 通過、backend 以 exit code 126 失敗；本次 bash Wrapper 修正需推送後重新確認。
 - 操作時發現原 8080 程序已占用，初步畫面驗收的一筆虛構應徵及面試留在原開發實例，未刪除使用者資料。獨立驗收前端改用 HIREFLOW_DEV_API_TARGET 指定後端。
+- Google Calendar 真實授權完成後，虛構面試 #1 的 UPSERT 工作完成；再透過應用程式取消該筆面試，DELETE 工作亦完成。面試目前為 CANCELLED；Google 帳號連結保留。截圖僅包含 Demo 身分與虛構測試資料。
+- 遠端 CI 的第二個問題是 Wrapper properties 最後一行缺少換行，POSIX shell 因而漏讀 distributionUrl。已補上行結尾、`.gitattributes` 與 executable bit，修正後三個工作全數通過。
 
 ## 外部派送限制
 
