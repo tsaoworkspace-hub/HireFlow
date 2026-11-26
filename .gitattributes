@@ -1,0 +1,5 @@
+# Keep Maven Wrapper usable on Linux and Windows.
+backend/mvnw text eol=lf
+*.properties text eol=lf
+*.sh text eol=lf
+*.cmd text eol=crlf
