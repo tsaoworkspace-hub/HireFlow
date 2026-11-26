@@ -52,6 +52,55 @@ class InterviewIntegrationTests {
     @Autowired JobOpeningRepository openings;
 
     @Test
+    void rescheduleExcludesItselfAndRejectsStaleVersion() {
+        var initial = assignedInterview();
+        var moved = interviewService.reschedule(initial.id(), HR_EMAIL,
+                new RescheduleInterviewRequest(initial.startsAt().plusSeconds(900),
+                        initial.endsAt().plusSeconds(900), InterviewFormat.PHONE,
+                        "測試改期", "應徵者調整時間", initial.version()));
+        assertThat(moved.startsAt()).isEqualTo(initial.startsAt().plusSeconds(900));
+        assertThat(moved.version()).isGreaterThan(initial.version());
+        assertThat(moved.interviewers()).isEqualTo(initial.interviewers());
+        assertThatThrownBy(() -> interviewService.reschedule(initial.id(), HR_EMAIL,
+                new RescheduleInterviewRequest(initial.startsAt(), initial.endsAt(),
+                        InterviewFormat.ONLINE, null, "舊版本", initial.version())))
+                .isInstanceOf(ConflictException.class);
+    }
+
+    @Test
+    void rescheduleRejectsOverlapAndNonHr() {
+        var first = assignedInterview();
+        var secondStart = first.startsAt().plusSeconds(7200);
+        var second = interviewService.schedule(HR_EMAIL, schedule(screeningApplication(),
+                secondStart, secondStart.plusSeconds(3600), user(INTERVIEWER_EMAIL).getId()));
+        var request = new RescheduleInterviewRequest(first.startsAt(), first.endsAt(),
+                InterviewFormat.ONLINE, null, "測試撞期", second.version());
+        assertThatThrownBy(() -> interviewService.reschedule(second.id(), HR_EMAIL, request))
+                .isInstanceOf(ConflictException.class);
+        assertThatThrownBy(() -> interviewService.reschedule(second.id(), MANAGER_EMAIL, request))
+                .isInstanceOf(ForbiddenException.class);
+    }
+
+    @Test
+    void rescheduleRejectsPastTimesSubmittedScoresAndCancellation() {
+        var interview = assignedInterview();
+        assertThatThrownBy(() -> interviewService.reschedule(interview.id(), HR_EMAIL,
+                new RescheduleInterviewRequest(Instant.now().minusSeconds(120), Instant.now(),
+                        InterviewFormat.ONLINE, null, "無效時間", interview.version())))
+                .isInstanceOf(BusinessException.class);
+        interviewService.saveScorecard(interview.id(), INTERVIEWER_EMAIL, scorecard(true));
+        assertThatThrownBy(() -> interviewService.reschedule(interview.id(), HR_EMAIL,
+                new RescheduleInterviewRequest(interview.startsAt(), interview.endsAt(),
+                        InterviewFormat.ONLINE, null, "已評分", interview.version())))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("評分");
+        var cancelled = interviewService.cancel(interview.id(), HR_EMAIL, new CancelInterviewRequest("測試取消"));
+        assertThatThrownBy(() -> interviewService.reschedule(interview.id(), HR_EMAIL,
+                new RescheduleInterviewRequest(interview.startsAt(), interview.endsAt(),
+                        InterviewFormat.ONLINE, null, "已取消", cancelled.version())))
+                .isInstanceOf(BusinessException.class).hasMessageContaining("已排程");
+    }
+
+    @Test
     void rejectsPastAndInvalidTimeRanges() {
         Long applicationId = screeningApplication();
         Long interviewerId = user(INTERVIEWER_EMAIL).getId();

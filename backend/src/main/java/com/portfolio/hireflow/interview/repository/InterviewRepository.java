@@ -45,6 +45,16 @@ public interface InterviewRepository extends JpaRepository<Interview, Long>, Jpa
             @Param("cancelled") InterviewStatus cancelled
     );
 
+    @Query("""
+            select count(i) from Interview i join i.interviewers interviewer
+            where interviewer.id = :interviewerId and i.id <> :excludedId
+              and i.status <> :cancelled and i.startsAt < :endsAt and i.endsAt > :startsAt
+            """)
+    long countConflictsExcluding(
+            @Param("interviewerId") Long interviewerId, @Param("excludedId") Long excludedId,
+            @Param("startsAt") Instant startsAt, @Param("endsAt") Instant endsAt,
+            @Param("cancelled") InterviewStatus cancelled);
+
     long countByApplicationIdAndStatus(Long applicationId, InterviewStatus status);
 
     @EntityGraph(attributePaths = {

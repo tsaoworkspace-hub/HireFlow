@@ -49,7 +49,47 @@ class CalendarDispatchIntegrationTests {
     @Autowired AppUserRepository users;
     @Autowired EntityManager em;
     @Autowired PlatformTransactionManager transactions;
+    @Autowired com.portfolio.hireflow.integration.calendar.service.CalendarSyncQueueService queue;
     @MockitoBean GoogleCalendarApiService api;
+
+    @Test
+    void newInterviewVersionQueuesAnotherUpdateButSameVersionDoesNotDuplicate() {
+        Long original = newJob();
+        var ids = new TransactionTemplate(transactions).execute(status -> {
+            var job = jobs.findById(original).orElseThrow();
+            var connection = new com.portfolio.hireflow.integration.calendar.entity.GoogleCalendarConnection(job.getUser());
+            connection.update("encrypted-test-access", "encrypted-test-refresh", Instant.now().plusSeconds(3600), "calendar.events");
+            em.persist(connection);
+            em.flush();
+            var interview = job.getInterview();
+            long before = jobs.count();
+            queue.queueUpserts(interview);
+            queue.queueUpserts(interview);
+            em.flush();
+            assertThat(jobs.count()).isEqualTo(before + 1);
+            interview.reschedule(interview.getStartsAt().plusSeconds(3600),
+                    interview.getEndsAt().plusSeconds(3600), InterviewFormat.PHONE, "updated");
+            em.flush();
+            queue.queueUpserts(interview);
+            em.flush();
+            assertThat(jobs.count()).isEqualTo(before + 2);
+            // Isolate this fixture from the other test's HR connection.
+            em.remove(connection);
+            return interview.getId();
+        });
+        assertThat(ids).isNotNull();
+    }
+
+    @Test
+    void delayedUpsertDoesNotRecreateCancelledEvent() {
+        Long id = newJob();
+        new TransactionTemplate(transactions).executeWithoutResult(status -> {
+            jobs.findById(id).orElseThrow().getInterview().cancel("test cancellation");
+        });
+        dispatcher.sync(id);
+        assertThat(jobs.findById(id).orElseThrow().getStatus()).isEqualTo(CalendarSyncStatus.COMPLETED);
+        org.mockito.Mockito.verifyNoInteractions(api);
+    }
 
     @Test
     void createUpdateDeletePersistResultsAcrossSeparateTransactions() {

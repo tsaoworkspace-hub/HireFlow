@@ -31,7 +31,7 @@ public class CalendarSyncQueueService {
 
   private void queue(Interview i, AppUser u, CalendarSyncOperation op) {
     if (!connections.existsByUserId(u.getId())) return;
-    String key = "interview-" + i.getId() + "-user-" + u.getId() + "-" + op;
+    String key = "interview-" + i.getId() + "-user-" + u.getId() + "-" + op + "-v" + i.getVersion();
     if (!jobs.existsByKey(key)) jobs.save(new CalendarSyncJob(key, i, u, op));
   }
 

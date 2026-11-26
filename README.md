@@ -26,6 +26,12 @@ HireFlow 是一個整合人力需求簽核、公開職缺、應徵者管理、�
 
 ![Google Calendar 新增與取消同步實測](docs/screenshots/calendar-integration.jpg)
 
+### 面試改期與 Offer 回覆
+
+![面試改期](docs/screenshots/interview-reschedule.jpg)
+
+![求職者接受虛構 Offer](docs/screenshots/offer-accepted.jpg)
+
 ## 核心功能一覽
 
 | 模組 | 主要功能 |
@@ -35,7 +41,7 @@ HireFlow 是一個整合人力需求簽核、公開職缺、應徵者管理、�
 | 公開職缺 | 公開職缺列表、職缺詳情及求職者線上應徵 |
 | 應徵者 | 基本履歷、自傳、作品集、多筆工作經歷及 PDF 履歷版本 |
 | 應徵流程 | 招募看板、階段轉換、狀態歷程及求職者進度查詢 |
-| 面試 | 面試安排、撞期檢查、面試官指派、自助選時及公司行事曆 |
+| 面試 | 面試安排、改期與地點修改、撞期檢查、面試官指派、自助選時及公司行事曆 |
 | 評分與決策 | 評分表鎖定／解鎖、評分彙整、錄取決策與前置條件檢查 |
 | Offer | 草稿、送審、主管核准／退回、寄送、接受／拒絕及到期提醒 |
 | 外部整合 | Gmail SMTP、Email Outbox、Google Calendar OAuth 與事件同步 |
@@ -211,8 +217,8 @@ npm run build
 
 目前自動化驗證結果：
 
-- Backend：核心流程及外部派送交易整合測試（最新結果以測試報告為準）
-- Frontend：18 項測試通過
+- Backend：53 項一般測試通過，3 項需憑證／外部資料庫的測試預設跳過
+- Frontend：19 項測試通過
 - Frontend production build 通過
 - GitHub Actions 會在 `main`、`codex/**` 與 Pull Request 執行前後端驗證
 - CI 使用獨立 PostgreSQL 17 驗證全新資料庫的 Flyway Migration 與 Hibernate Schema；H2 測試不會讀取本機 `.env` 或寄出信件。
@@ -239,7 +245,7 @@ Remove-Item Env:HIREFLOW_SMTP_TEST
 
 - 此 Repository 是個人全端作品集，目前以本機可完整操作與測試為目標。
 - Google Calendar 與 Gmail 功能需要自行建立 OAuth／SMTP 憑證後才會實際呼叫外部服務。
-- Gmail 實際寄送已驗證；Google Calendar 真實帳號授權、事件新增及取消同步已驗證。面試改期尚無公司端操作入口，不能視為已完成的端到端功能。完整待辦與派送限制見 [`公開前驗收清單`](docs/PUBLIC_RELEASE_CHECKLIST.md)。
+- Gmail 實際寄送、Google Calendar 真實帳號授權及新增／改期／取消的派送工作已驗證；Offer 已完成 HR 建立、主管核准、寄送與求職者接受的瀏覽器驗收。驗收範圍與派送限制見 [`公開前驗收清單`](docs/PUBLIC_RELEASE_CHECKLIST.md)。
 - 正式部署前仍需依實際網域、Secret Manager、TLS、物件儲存與資料庫環境調整設定。
 
 ---

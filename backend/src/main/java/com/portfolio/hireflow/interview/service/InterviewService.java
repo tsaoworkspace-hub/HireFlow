@@ -183,6 +183,39 @@ public class InterviewService {
     }
 
     @Transactional
+    public InterviewResponse reschedule(Long id, String email, RescheduleInterviewRequest request) {
+        AppUser actor = loadActor(email);
+        requireHr(actor);
+        Interview interview = loadInterview(id);
+        if (interview.getStatus() != InterviewStatus.SCHEDULED) {
+            throw new BusinessException("只有已排程面試可以改期");
+        }
+        if (request.version() == null || interview.getVersion() != request.version()) {
+            throw new ConflictException("面試資料已更新，請重新載入後再改期");
+        }
+        if (!SCHEDULABLE_STAGES.contains(interview.getApplication().getStage())) {
+            throw new BusinessException("目前應徵階段不能改期");
+        }
+        if (scorecards.countByInterviewIdAndStatus(id, ScorecardStatus.SUBMITTED) > 0) {
+            throw new BusinessException("已有送出評分，不能直接改期");
+        }
+        validateTimes(request.startsAt(), request.endsAt());
+        for (AppUser interviewer : interview.getInterviewers()) {
+            if (interviews.countConflictsExcluding(interviewer.getId(), id,
+                    request.startsAt(), request.endsAt(), InterviewStatus.CANCELLED) > 0) {
+                throw new ConflictException(interviewer.getDisplayName() + " 在此時段已有其他面試");
+            }
+        }
+        interview.reschedule(request.startsAt(), request.endsAt(), request.format(), request.location());
+        // Flush advances @Version before producing a distinct calendar work key.
+        interviews.flush();
+        calendarSyncQueueService.queueUpserts(interview);
+        auditLogService.record(actor, AuditAction.INTERVIEW_RESCHEDULED,
+                AuditTargetType.INTERVIEW, id, request.reason());
+        return toResponse(interview, actor);
+    }
+
+    @Transactional
     public InterviewResponse cancel(Long id, String email, CancelInterviewRequest request) {
         AppUser actor = loadActor(email);
         requireHr(actor);

@@ -57,6 +57,13 @@ public class CalendarSyncDispatchService {
         status -> {
           CalendarSyncJob job = jobs.findForSync(id).orElse(null);
           if (job == null || !isDue(job)) return;
+          // A delayed upsert must never recreate an event after its interview was cancelled.
+          if (job.getOperation() == CalendarSyncOperation.UPSERT
+              && job.getInterview().getStatus()
+                  == com.portfolio.hireflow.interview.entity.InterviewStatus.CANCELLED) {
+            job.completed();
+            return;
+          }
           GoogleCalendarApiService api = apis.getIfAvailable();
           if (api == null) return;
           try {

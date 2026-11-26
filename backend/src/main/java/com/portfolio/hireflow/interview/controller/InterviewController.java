@@ -64,6 +64,15 @@ public class InterviewController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok("面試已安排", response));
     }
 
+    @PutMapping("/{id}/schedule")
+    @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
+    public ApiResponse<InterviewResponse> reschedule(
+            @PathVariable Long id, @Valid @RequestBody RescheduleInterviewRequest request,
+            Authentication authentication) {
+        return ApiResponse.ok("面試已改期，同步工作已排入佇列",
+                service.reschedule(id, authentication.getName(), request));
+    }
+
     @PostMapping("/{id}/cancel")
     @PreAuthorize("hasAnyRole('ADMIN', 'HR')")
     public ApiResponse<InterviewResponse> cancel(

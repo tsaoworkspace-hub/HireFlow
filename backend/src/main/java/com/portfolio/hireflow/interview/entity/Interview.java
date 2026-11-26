@@ -92,6 +92,14 @@ public class Interview {
         this.updatedAt = this.createdAt;
     }
 
+    public void reschedule(Instant startsAt, Instant endsAt, InterviewFormat format, String location) {
+        this.startsAt = startsAt;
+        this.endsAt = endsAt;
+        this.format = format;
+        this.location = normalize(location);
+        this.updatedAt = Instant.now();
+    }
+
     public void cancel(String reason) {
         this.status = InterviewStatus.CANCELLED;
         this.cancellationReason = reason.trim();

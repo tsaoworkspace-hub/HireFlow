@@ -27,7 +27,7 @@ a { text-decoration: none; }
 .sidebar-note { margin-top: auto; display: grid; gap: 5px; padding: 16px; border: 1px solid #2c4868; border-radius: 12px; background: #162f4d; }
 .sidebar-note span { color: #9fb1c6; font-size: .8rem; line-height: 1.6; }
 
-.content { width: 100%; margin-left: 240px; }
+.content { width: calc(100% - 240px); min-width: 0; margin-left: 240px; }
 .topbar { height: 76px; display: flex; align-items: center; justify-content: space-between; padding: 0 36px; border-bottom: 1px solid #e4e9f0; background: #fff; }
 .topbar > div { display: grid; }
 .topbar small { color: #7d8a99; }
@@ -363,7 +363,7 @@ a { text-decoration: none; }
   .sidebar { position: static; width: 100%; min-height: auto; }
   .sidebar-note { display: none; }
   .app-shell { display: block; }
-  .content { margin-left: 0; }
+  .content { width: 100%; margin-left: 0; }
   .workflow-steps { grid-template-columns: repeat(2, 1fr); }
   .login-page { grid-template-columns: 1fr; }
   .login-story { display: none; }
