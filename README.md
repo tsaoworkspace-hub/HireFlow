@@ -4,7 +4,27 @@ HireFlow 是一個整合人力需求簽核、公開職缺、應徵者管理、�
 
 這是我的個人全端作品集專案，重點不只在完成 CRUD，而是實作企業招募中常見的角色權限、部門資料隔離、狀態流程、稽核紀錄、非同步通知及第三方整合。
 
-## 核心功能
+## 畫面預覽
+
+以下為開發環境畫面，履歷與面試資料均為虛構展示資料。
+
+### HR 工作台
+
+![HR 工作台](docs/screenshots/dashboard.jpg)
+
+### 公開職缺與求職者進度
+
+![公開職缺](docs/screenshots/careers.jpg)
+
+![求職者進度](docs/screenshots/candidate-status.jpg)
+
+### 招募看板與公司行事曆
+
+![招募看板](docs/screenshots/pipeline.jpg)
+
+![公司行事曆](docs/screenshots/calendar.jpg)
+
+## 核心功能一覽
 
 | 模組 | 主要功能 |
 | --- | --- |
@@ -130,6 +150,8 @@ docker compose up -d
 
 `.env` 內的值只供本機使用，請勿提交真實的 Gmail、Google OAuth 或資料庫憑證。
 
+預設 `local` profile 會從啟動目錄或上一層讀取 `.env`，支援在專案根目錄或 `backend/` 啟動。使用 `KEY=value` 格式，不加引號；Google 應用程式密碼移除空格。IDE／作業系統環境變數優先於 `.env`，若保留舊值需更新或移除。
+
 ### 2. 啟動 Backend
 
 Windows：
@@ -187,10 +209,19 @@ npm run build
 
 目前自動化驗證結果：
 
-- Backend：43 項測試通過
+- Backend：核心流程及外部派送交易整合測試（最新結果以測試報告為準）
 - Frontend：18 項測試通過
 - Frontend production build 通過
 - GitHub Actions 會在 `main`、`codex/**` 與 Pull Request 執行前後端驗證
+- CI 使用獨立 PostgreSQL 17 驗證全新資料庫的 Flyway Migration 與 Hibernate Schema；H2 測試不會讀取本機 `.env` 或寄出信件。
+
+Gmail 設定完成後，可在 `backend/` 用下列指令只驗證 SMTP 登入，不寄信：
+
+```powershell
+$env:HIREFLOW_SMTP_TEST='true'
+.\mvnw.cmd -Dtest=GmailConnectionIntegrationTests test
+Remove-Item Env:HIREFLOW_SMTP_TEST
+```
 
 ## 完成階段
 
@@ -206,6 +237,7 @@ npm run build
 
 - 此 Repository 是個人全端作品集，目前以本機可完整操作與測試為目標。
 - Google Calendar 與 Gmail 功能需要自行建立 OAuth／SMTP 憑證後才會實際呼叫外部服務。
+- Gmail 實際寄送已驗證；Google Calendar 真實帳號授權及同步仍待驗收。完整待辦與派送限制見 [`公開前驗收清單`](docs/PUBLIC_RELEASE_CHECKLIST.md)。
 - 正式部署前仍需依實際網域、Secret Manager、TLS、物件儲存與資料庫環境調整設定。
 
 ---

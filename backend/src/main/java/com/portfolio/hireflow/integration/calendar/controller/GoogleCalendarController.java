@@ -1,14 +1,86 @@
 package com.portfolio.hireflow.integration.calendar.controller;
+
 import com.portfolio.hireflow.common.exception.BusinessException;
-import java.net.URI;import java.security.SecureRandom;import java.util.Base64;import org.springframework.beans.factory.annotation.Value;import org.springframework.data.domain.*;import org.springframework.data.web.PageableDefault;import org.springframework.http.*;import org.springframework.security.core.Authentication;import org.springframework.web.bind.annotation.*;import com.portfolio.hireflow.common.response.*;import com.portfolio.hireflow.integration.calendar.dto.*;import com.portfolio.hireflow.integration.calendar.service.CalendarIntegrationService;import jakarta.servlet.http.HttpSession;
-@RestController @RequestMapping("/api/integrations/google-calendar")
-public class GoogleCalendarController{
- private final CalendarIntegrationService service;private final String frontendBaseUrl;private final SecureRandom random=new SecureRandom();
- public GoogleCalendarController(CalendarIntegrationService service,@Value("${app.frontend-base-url:http://localhost:5173}") String frontendBaseUrl){this.service=service;this.frontendBaseUrl=frontendBaseUrl;}
- @GetMapping("/status") public ApiResponse<GoogleCalendarConnectionResponse> status(Authentication a){return ApiResponse.ok("已取得 Google Calendar 狀態",service.status(a.getName()));}
- @GetMapping("/authorize") public ApiResponse<GoogleCalendarConnectionResponse> authorize(Authentication a,HttpSession session){byte[] b=new byte[24];random.nextBytes(b);String state=Base64.getUrlEncoder().withoutPadding().encodeToString(b);session.setAttribute("googleCalendarOAuthState",state);String url=service.authorizationUrl(a.getName(),state);var current=service.status(a.getName());return ApiResponse.ok("已建立 Google 授權網址",new GoogleCalendarConnectionResponse(current.enabled(),current.connected(),current.updatedAt(),url));}
- @GetMapping("/callback") public ResponseEntity<Void> callback(@RequestParam String code,@RequestParam String state,Authentication a,HttpSession session){Object expected=session.getAttribute("googleCalendarOAuthState");if(expected==null||!expected.equals(state))throw new BusinessException("Google Calendar 授權狀態已失效，請重新連結");session.removeAttribute("googleCalendarOAuthState");service.exchange(a.getName(),code);return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(frontendBaseUrl.replaceAll("/+$","")+"/integrations?google=connected")).build();}
- @DeleteMapping public ApiResponse<Void> disconnect(Authentication a){service.disconnect(a.getName());return ApiResponse.ok("已解除 Google Calendar 連結",null);}
- @GetMapping("/sync-jobs") public ApiResponse<PageResponse<CalendarSyncJobResponse>> jobs(Authentication a,@PageableDefault(size=50,sort="createdAt",direction=Sort.Direction.DESC) Pageable p){return ApiResponse.ok("已取得同步紀錄",service.jobs(a.getName(),p));}
- @PostMapping("/sync-jobs/{id}/retry") public ApiResponse<CalendarSyncJobResponse> retry(@PathVariable Long id,Authentication a){return ApiResponse.ok("同步工作已排入重試",service.retry(id,a.getName()));}
+import com.portfolio.hireflow.common.response.*;
+import com.portfolio.hireflow.integration.calendar.dto.*;
+import com.portfolio.hireflow.integration.calendar.service.CalendarIntegrationService;
+import jakarta.servlet.http.HttpSession;
+import java.net.URI;
+import java.security.SecureRandom;
+import java.util.Base64;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.*;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/integrations/google-calendar")
+public class GoogleCalendarController {
+  private final CalendarIntegrationService service;
+  private final String frontendBaseUrl;
+  private final SecureRandom random = new SecureRandom();
+
+  public GoogleCalendarController(
+      CalendarIntegrationService service,
+      @Value("${app.frontend-base-url:http://localhost:5173}") String frontendBaseUrl) {
+    this.service = service;
+    this.frontendBaseUrl = frontendBaseUrl;
+  }
+
+  @GetMapping("/status")
+  public ApiResponse<GoogleCalendarConnectionResponse> status(Authentication a) {
+    return ApiResponse.ok("已取得 Google Calendar 狀態", service.status(a.getName()));
+  }
+
+  @GetMapping("/authorize")
+  public ApiResponse<GoogleCalendarConnectionResponse> authorize(
+      Authentication a, HttpSession session) {
+    byte[] b = new byte[24];
+    random.nextBytes(b);
+    String state = Base64.getUrlEncoder().withoutPadding().encodeToString(b);
+    session.setAttribute("googleCalendarOAuthState", state);
+    String url = service.authorizationUrl(a.getName(), state);
+    var current = service.status(a.getName());
+    return ApiResponse.ok(
+        "已建立 Google 授權網址",
+        new GoogleCalendarConnectionResponse(
+            current.enabled(), current.connected(), current.updatedAt(), url));
+  }
+
+  @GetMapping("/callback")
+  public ResponseEntity<Void> callback(
+      @RequestParam String code,
+      @RequestParam String state,
+      Authentication a,
+      HttpSession session) {
+    Object expected = session.getAttribute("googleCalendarOAuthState");
+    if (expected == null || !expected.equals(state))
+      throw new BusinessException("Google Calendar 授權狀態已失效，請重新連結");
+    session.removeAttribute("googleCalendarOAuthState");
+    service.exchange(a.getName(), code);
+    return ResponseEntity.status(HttpStatus.FOUND)
+        .location(
+            URI.create(frontendBaseUrl.replaceAll("/+$", "") + "/integrations?google=connected"))
+        .build();
+  }
+
+  @DeleteMapping
+  public ApiResponse<Void> disconnect(Authentication a) {
+    service.disconnect(a.getName());
+    return ApiResponse.ok("已解除 Google Calendar 連結", null);
+  }
+
+  @GetMapping("/sync-jobs")
+  public ApiResponse<PageResponse<CalendarSyncJobResponse>> jobs(
+      Authentication a,
+      @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable p) {
+    return ApiResponse.ok("已取得同步紀錄", service.jobs(a.getName(), p));
+  }
+
+  @PostMapping("/sync-jobs/{id}/retry")
+  public ApiResponse<CalendarSyncJobResponse> retry(@PathVariable Long id, Authentication a) {
+    return ApiResponse.ok("同步工作已排入重試", service.retry(id, a.getName()));
+  }
 }

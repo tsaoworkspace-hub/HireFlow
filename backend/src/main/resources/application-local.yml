@@ -1,0 +1,5 @@
+# Resolve from either backend/ (Maven/IDE) or the repository root.
+# Environment variables still take precedence over these local properties.
+spring:
+  config:
+    import: "optional:file:../.env[.properties],optional:file:./.env[.properties]"

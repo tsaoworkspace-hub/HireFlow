@@ -1,9 +1,59 @@
 package com.portfolio.hireflow.integration.calendar.service;
-import java.nio.*;import java.nio.charset.StandardCharsets;import java.security.SecureRandom;import java.util.Base64;import javax.crypto.Cipher;import javax.crypto.spec.*;import org.springframework.beans.factory.annotation.Value;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;import org.springframework.stereotype.Component;
-@Component @ConditionalOnProperty(name="app.google-calendar.enabled",havingValue="true")
-public class GoogleCalendarTokenCipher{
- private final SecretKeySpec key;private final SecureRandom random=new SecureRandom();
- public GoogleCalendarTokenCipher(@Value("${app.google-calendar.token-encryption-key:}") String encoded){try{byte[] b=Base64.getDecoder().decode(encoded);if(b.length!=32)throw new IllegalArgumentException();key=new SecretKeySpec(b,"AES");}catch(Exception e){throw new IllegalStateException("GOOGLE_CALENDAR_TOKEN_KEY 必須是 Base64 編碼的 32 bytes 金鑰",e);}}
- public String encrypt(String value){try{byte[] iv=new byte[12];random.nextBytes(iv);Cipher c=Cipher.getInstance("AES/GCM/NoPadding");c.init(Cipher.ENCRYPT_MODE,key,new GCMParameterSpec(128,iv));byte[] encrypted=c.doFinal(value.getBytes(StandardCharsets.UTF_8));return Base64.getEncoder().encodeToString(ByteBuffer.allocate(iv.length+encrypted.length).put(iv).put(encrypted).array());}catch(Exception e){throw new IllegalStateException("Google token 加密失敗",e);}}
- public String decrypt(String value){try{ByteBuffer in=ByteBuffer.wrap(Base64.getDecoder().decode(value));byte[] iv=new byte[12];in.get(iv);byte[] encrypted=new byte[in.remaining()];in.get(encrypted);Cipher c=Cipher.getInstance("AES/GCM/NoPadding");c.init(Cipher.DECRYPT_MODE,key,new GCMParameterSpec(128,iv));return new String(c.doFinal(encrypted),StandardCharsets.UTF_8);}catch(Exception e){throw new IllegalStateException("Google token 解密失敗",e);}}
+
+import java.nio.*;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Base64;
+import javax.crypto.Cipher;
+import javax.crypto.spec.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
+
+@Component
+@ConditionalOnProperty(name = "app.google-calendar.enabled", havingValue = "true")
+public class GoogleCalendarTokenCipher {
+  private final SecretKeySpec key;
+  private final SecureRandom random = new SecureRandom();
+
+  public GoogleCalendarTokenCipher(
+      @Value("${app.google-calendar.token-encryption-key:}") String encoded) {
+    try {
+      byte[] b = Base64.getDecoder().decode(encoded);
+      if (b.length != 32) throw new IllegalArgumentException();
+      key = new SecretKeySpec(b, "AES");
+    } catch (Exception e) {
+      throw new IllegalStateException("GOOGLE_CALENDAR_TOKEN_KEY 必須是 Base64 編碼的 32 bytes 金鑰", e);
+    }
+  }
+
+  public String encrypt(String value) {
+    try {
+      byte[] iv = new byte[12];
+      random.nextBytes(iv);
+      Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
+      c.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, iv));
+      byte[] encrypted = c.doFinal(value.getBytes(StandardCharsets.UTF_8));
+      return Base64.getEncoder()
+          .encodeToString(
+              ByteBuffer.allocate(iv.length + encrypted.length).put(iv).put(encrypted).array());
+    } catch (Exception e) {
+      throw new IllegalStateException("Google token 加密失敗", e);
+    }
+  }
+
+  public String decrypt(String value) {
+    try {
+      ByteBuffer in = ByteBuffer.wrap(Base64.getDecoder().decode(value));
+      byte[] iv = new byte[12];
+      in.get(iv);
+      byte[] encrypted = new byte[in.remaining()];
+      in.get(encrypted);
+      Cipher c = Cipher.getInstance("AES/GCM/NoPadding");
+      c.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, iv));
+      return new String(c.doFinal(encrypted), StandardCharsets.UTF_8);
+    } catch (Exception e) {
+      throw new IllegalStateException("Google token 解密失敗", e);
+    }
+  }
 }

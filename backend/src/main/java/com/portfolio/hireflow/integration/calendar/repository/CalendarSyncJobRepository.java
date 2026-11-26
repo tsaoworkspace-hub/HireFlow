@@ -1,2 +1,23 @@
-package com.portfolio.hireflow.integration.calendar.repository;import java.time.Instant;import java.util.*;import org.springframework.data.domain.*;import org.springframework.data.jpa.repository.*;import org.springframework.data.repository.query.Param;import com.portfolio.hireflow.integration.calendar.entity.*;
-public interface CalendarSyncJobRepository extends JpaRepository<CalendarSyncJob,Long>{boolean existsByKey(String key);@Query("select j from CalendarSyncJob j where j.status='PENDING' or (j.status='RETRY_WAIT' and j.nextRetryAt<=:now) order by j.createdAt") List<CalendarSyncJob> findDue(@Param("now") Instant now,Pageable p);Page<CalendarSyncJob> findAllByOrderByCreatedAtDesc(Pageable p);}
+package com.portfolio.hireflow.integration.calendar.repository;
+
+import com.portfolio.hireflow.integration.calendar.entity.*;
+import java.time.Instant;
+import java.util.*;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.repository.*;
+import org.springframework.data.repository.query.Param;
+
+public interface CalendarSyncJobRepository extends JpaRepository<CalendarSyncJob, Long> {
+  @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+  @Query("select j from CalendarSyncJob j where j.id = :id")
+  Optional<CalendarSyncJob> findForSync(@Param("id") Long id);
+
+  boolean existsByKey(String key);
+
+  @Query(
+      "select j from CalendarSyncJob j where j.status='PENDING' or (j.status='RETRY_WAIT' and"
+          + " j.nextRetryAt<=:now) order by j.createdAt")
+  List<CalendarSyncJob> findDue(@Param("now") Instant now, Pageable p);
+
+  Page<CalendarSyncJob> findAllByOrderByCreatedAtDesc(Pageable p);
+}

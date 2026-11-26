@@ -24,6 +24,9 @@ spring:
     properties:
       mail.smtp.auth: ${MAIL_SMTP_AUTH:true}
       mail.smtp.starttls.enable: ${MAIL_STARTTLS:true}
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
   servlet:
     multipart:
       max-file-size: ${RESUME_MAX_FILE_SIZE:5MB}
@@ -58,6 +61,9 @@ springdoc:
     path: /swagger-ui.html
 
 management:
+  health:
+    mail:
+      enabled: ${APP_MAIL_ENABLED:false}
   endpoints:
     web:
       exposure:

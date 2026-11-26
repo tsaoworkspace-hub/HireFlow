@@ -1,18 +1,125 @@
 package com.portfolio.hireflow.integration.calendar.service;
-import java.time.Instant;import org.springframework.beans.factory.ObjectProvider;import org.springframework.beans.factory.annotation.Value;import org.springframework.data.domain.*;import org.springframework.stereotype.Service;import org.springframework.transaction.annotation.Transactional;
-import com.portfolio.hireflow.audit.entity.*;import com.portfolio.hireflow.audit.service.AuditLogService;import com.portfolio.hireflow.auth.entity.AppUser;import com.portfolio.hireflow.auth.repository.AppUserRepository;import com.portfolio.hireflow.common.exception.*;import com.portfolio.hireflow.common.response.PageResponse;import com.portfolio.hireflow.integration.calendar.dto.*;import com.portfolio.hireflow.integration.calendar.entity.CalendarSyncJob;import com.portfolio.hireflow.integration.calendar.repository.*;
-import com.portfolio.hireflow.interview.entity.InterviewStatus;import com.portfolio.hireflow.interview.repository.InterviewRepository;
-@Service @Transactional(readOnly=true)
-public class CalendarIntegrationService{
- private final AppUserRepository users;private final GoogleCalendarConnectionRepository connections;private final CalendarSyncJobRepository jobs;private final ObjectProvider<GoogleCalendarOAuthService> oauths;private final AuditLogService audit;private final boolean enabled;private final InterviewRepository interviews;private final CalendarSyncQueueService queue;
- public CalendarIntegrationService(AppUserRepository users,GoogleCalendarConnectionRepository connections,CalendarSyncJobRepository jobs,ObjectProvider<GoogleCalendarOAuthService> oauths,AuditLogService audit,@Value("${app.google-calendar.enabled:false}") boolean enabled,InterviewRepository interviews,CalendarSyncQueueService queue){this.users=users;this.connections=connections;this.jobs=jobs;this.oauths=oauths;this.audit=audit;this.enabled=enabled;this.interviews=interviews;this.queue=queue;}
- public GoogleCalendarConnectionResponse status(String email){AppUser u=actor(email);var c=connections.findByUserId(u.getId());return new GoogleCalendarConnectionResponse(enabled,c.isPresent(),c.map(v->v.getUpdatedAt()).orElse(null),null);}
- public String authorizationUrl(String email,String state){actor(email);GoogleCalendarOAuthService oauth=oauths.getIfAvailable();if(oauth==null)throw new BusinessException("Google Calendar 尚未啟用");return oauth.authorizationUrl(state);}
- @Transactional public void exchange(String email,String code){AppUser u=actor(email);GoogleCalendarOAuthService oauth=oauths.getIfAvailable();if(oauth==null)throw new BusinessException("Google Calendar 尚未啟用");oauth.exchange(u,code);interviews.findUpcomingForUser(u.getId(),Instant.now(),InterviewStatus.SCHEDULED).forEach(queue::queueUpserts);}
- @Transactional public void disconnect(String email){AppUser u=actor(email);GoogleCalendarOAuthService oauth=oauths.getIfAvailable();if(oauth!=null)oauth.disconnect(u.getId());}
- public PageResponse<CalendarSyncJobResponse> jobs(String email,Pageable p){requireHr(actor(email));return PageResponse.from(jobs.findAllByOrderByCreatedAtDesc(p).map(this::response));}
- @Transactional public CalendarSyncJobResponse retry(Long id,String email){AppUser a=actor(email);requireHr(a);CalendarSyncJob j=jobs.findById(id).orElseThrow(()->new ResourceNotFoundException("找不到同步工作"));j.retry();audit.record(a,AuditAction.CALENDAR_SYNC_RETRY_REQUESTED,AuditTargetType.CALENDAR_SYNC,id,null);return response(j);}
- private CalendarSyncJobResponse response(CalendarSyncJob j){return new CalendarSyncJobResponse(j.getId(),j.getInterview().getId(),j.getUser().getId(),j.getUser().getDisplayName(),j.getOperation(),j.getStatus(),j.getRetryCount(),j.getNextRetryAt(),j.getLastError(),j.getCompletedAt(),j.getCreatedAt());}
- private AppUser actor(String e){return users.findByEmailIgnoreCase(e).orElseThrow(()->new UnauthorizedException("登入狀態無效"));}
- private void requireHr(AppUser a){if(a.getRoles().stream().noneMatch(r->r.getCode().equals("HR")||r.getCode().equals("ADMIN")))throw new ForbiddenException("只有 HR 可以管理同步工作");}
+
+import com.portfolio.hireflow.audit.entity.*;
+import com.portfolio.hireflow.audit.service.AuditLogService;
+import com.portfolio.hireflow.auth.entity.AppUser;
+import com.portfolio.hireflow.auth.repository.AppUserRepository;
+import com.portfolio.hireflow.common.exception.*;
+import com.portfolio.hireflow.common.response.PageResponse;
+import com.portfolio.hireflow.integration.calendar.dto.*;
+import com.portfolio.hireflow.integration.calendar.entity.CalendarSyncJob;
+import com.portfolio.hireflow.integration.calendar.repository.*;
+import com.portfolio.hireflow.interview.entity.InterviewStatus;
+import com.portfolio.hireflow.interview.repository.InterviewRepository;
+import java.time.Instant;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Transactional(readOnly = true)
+public class CalendarIntegrationService {
+  private final AppUserRepository users;
+  private final GoogleCalendarConnectionRepository connections;
+  private final CalendarSyncJobRepository jobs;
+  private final ObjectProvider<GoogleCalendarOAuthService> oauths;
+  private final AuditLogService audit;
+  private final boolean enabled;
+  private final InterviewRepository interviews;
+  private final CalendarSyncQueueService queue;
+
+  public CalendarIntegrationService(
+      AppUserRepository users,
+      GoogleCalendarConnectionRepository connections,
+      CalendarSyncJobRepository jobs,
+      ObjectProvider<GoogleCalendarOAuthService> oauths,
+      AuditLogService audit,
+      @Value("${app.google-calendar.enabled:false}") boolean enabled,
+      InterviewRepository interviews,
+      CalendarSyncQueueService queue) {
+    this.users = users;
+    this.connections = connections;
+    this.jobs = jobs;
+    this.oauths = oauths;
+    this.audit = audit;
+    this.enabled = enabled;
+    this.interviews = interviews;
+    this.queue = queue;
+  }
+
+  public GoogleCalendarConnectionResponse status(String email) {
+    AppUser u = actor(email);
+    var c = connections.findByUserId(u.getId());
+    return new GoogleCalendarConnectionResponse(
+        enabled, c.isPresent(), c.map(v -> v.getUpdatedAt()).orElse(null), null);
+  }
+
+  public String authorizationUrl(String email, String state) {
+    actor(email);
+    GoogleCalendarOAuthService oauth = oauths.getIfAvailable();
+    if (oauth == null) throw new BusinessException("Google Calendar 尚未啟用");
+    return oauth.authorizationUrl(state);
+  }
+
+  @Transactional
+  public void exchange(String email, String code) {
+    AppUser u = actor(email);
+    GoogleCalendarOAuthService oauth = oauths.getIfAvailable();
+    if (oauth == null) throw new BusinessException("Google Calendar 尚未啟用");
+    oauth.exchange(u, code);
+    interviews
+        .findUpcomingForUser(u.getId(), Instant.now(), InterviewStatus.SCHEDULED)
+        .forEach(queue::queueUpserts);
+  }
+
+  @Transactional
+  public void disconnect(String email) {
+    AppUser u = actor(email);
+    GoogleCalendarOAuthService oauth = oauths.getIfAvailable();
+    if (oauth != null) oauth.disconnect(u.getId());
+  }
+
+  public PageResponse<CalendarSyncJobResponse> jobs(String email, Pageable p) {
+    requireHr(actor(email));
+    return PageResponse.from(jobs.findAllByOrderByCreatedAtDesc(p).map(this::response));
+  }
+
+  @Transactional
+  public CalendarSyncJobResponse retry(Long id, String email) {
+    AppUser a = actor(email);
+    requireHr(a);
+    CalendarSyncJob j =
+        jobs.findById(id).orElseThrow(() -> new ResourceNotFoundException("找不到同步工作"));
+    j.retry();
+    audit.record(
+        a, AuditAction.CALENDAR_SYNC_RETRY_REQUESTED, AuditTargetType.CALENDAR_SYNC, id, null);
+    return response(j);
+  }
+
+  private CalendarSyncJobResponse response(CalendarSyncJob j) {
+    return new CalendarSyncJobResponse(
+        j.getId(),
+        j.getInterview().getId(),
+        j.getUser().getId(),
+        j.getUser().getDisplayName(),
+        j.getOperation(),
+        j.getStatus(),
+        j.getRetryCount(),
+        j.getNextRetryAt(),
+        j.getLastError(),
+        j.getCompletedAt(),
+        j.getCreatedAt());
+  }
+
+  private AppUser actor(String e) {
+    return users.findByEmailIgnoreCase(e).orElseThrow(() -> new UnauthorizedException("登入狀態無效"));
+  }
+
+  private void requireHr(AppUser a) {
+    if (a.getRoles().stream()
+        .noneMatch(r -> r.getCode().equals("HR") || r.getCode().equals("ADMIN")))
+      throw new ForbiddenException("只有 HR 可以管理同步工作");
+  }
 }
