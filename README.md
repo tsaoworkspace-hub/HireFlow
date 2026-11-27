@@ -8,31 +8,70 @@ HireFlow 是一個整合人力需求簽核、公開職缺、應徵者管理、�
 
 ## 畫面預覽
 
-以下為既有開發版本的功能畫面示意，履歷與面試資料均為虛構展示資料；實際排版依使用版本而異。
+以下截圖擷取自 2026-11-27 的本機開發版本，呈現暖白、芥末金與深棕色的介面。新版介面與可設定簽核功能的程式碼尚未同步至本 Repository，下載版本請以其程式碼為準。
+
+截圖使用獨立展示資料庫，姓名、履歷、薪資與 Offer 均為虛構資料。展示環境停用 Gmail 與 Google Calendar 的實際派送，因此畫面中的通知工作會保留在等待處理狀態。
+
+### 公開招募與企業登入
+
+求職者從公開招募頁探索職缺；公司使用者由獨立登入入口進入工作台。
+
+![新版公開招募頁與職缺列表](docs/screenshots/careers.jpg)
+
+![新版企業登入頁](docs/screenshots/login.jpg)
 
 ### HR 工作台
 
-![HR 工作台](docs/screenshots/dashboard.jpg)
+集中查看待審需求、近期面試與人選階段分布。
 
-### 公開職缺與求職者進度
-
-![公開職缺](docs/screenshots/careers.jpg)
-
-![求職者進度](docs/screenshots/candidate-status.jpg)
+![新版 HR 招募總覽](docs/screenshots/dashboard.jpg)
 
 ### 招募看板與公司行事曆
 
-![招募看板](docs/screenshots/pipeline.jpg)
+招募看板採三欄排列；公司行事曆整合月曆與每日面試明細，Google Calendar 連結入口也集中於此。
 
-![公司行事曆](docs/screenshots/calendar.jpg)
+![三欄應徵流程看板](docs/screenshots/pipeline.jpg)
 
-![Google Calendar 新增與取消同步實測](docs/screenshots/calendar-integration.jpg)
+![新版公司面試行事曆](docs/screenshots/calendar.jpg)
 
-### 面試改期與 Offer 回覆
+<details>
+<summary>查看簽核流程、標準職稱與簽核進度</summary>
 
-![面試改期](docs/screenshots/interview-reschedule.jpg)
+由 HR／管理員維護部門流程與固定職稱，並追蹤各關指定人、核准結果與流程版本。
 
-![求職者接受虛構 Offer](docs/screenshots/offer-accepted.jpg)
+![部門簽核流程設定](docs/screenshots/approval-workflows.jpg)
+
+![標準職稱管理](docs/screenshots/job-titles.jpg)
+
+![逐關簽核進度](docs/screenshots/approval-progress.jpg)
+
+</details>
+
+<details>
+<summary>查看招募決策、Offer 與求職者進度</summary>
+
+公司端以搜尋與分頁管理案件，查看面試評分及最終決策；求職者端顯示應徵進度、履歷附件入口與 Offer 回覆。
+
+![招募決策案件搜尋](docs/screenshots/decisions.jpg)
+
+![面試評分彙整與招募結果](docs/screenshots/decisions-result.jpg)
+
+![Offer 管理與條件明細](docs/screenshots/offers.jpg)
+
+![求職者應徵歷程與虛構 Offer 回覆入口](docs/screenshots/candidate-status.jpg)
+
+</details>
+
+<details>
+<summary>查看面試管理、改期與通知紀錄</summary>
+
+![新版面試安排清單](docs/screenshots/interviews.jpg)
+
+![面試改期表單](docs/screenshots/interview-reschedule.jpg)
+
+![通知與同步紀錄](docs/screenshots/notification-records.jpg)
+
+</details>
 
 ## 核心功能一覽
 
