@@ -1,12 +1,14 @@
 # HireFlow｜招募流程、面試協作與求職者入口平台
 
-HireFlow 是一個整合人力需求簽核、公開職缺、應徵者管理、面試協作、錄取決策、Offer 與外部通知的全端招募系統。專案採 Monorepo 管理，前端使用 Vue 3，後端使用 Spring Boot，資料庫使用 PostgreSQL。
+HireFlow 是一個整合人力需求簽核、公開職缺、應徵者管理、面試協作、招募決策、Offer 與外部通知的全端招募系統。專案採 Monorepo 管理，前端使用 Vue 3，後端使用 Spring Boot，資料庫使用 PostgreSQL。
 
-這是我的個人全端作品集專案，重點不只在完成 CRUD，而是實作企業招募中常見的角色權限、部門資料隔離、狀態流程、稽核紀錄、非同步通知及第三方整合。
+這是我的個人全端作品集專案，著重企業招募中的角色權限、部門資料隔離、流程狀態、稽核追蹤、非同步通知及第三方整合。求職者可在線上投遞履歷、選擇面試時段、追蹤進度與回覆 Offer；公司使用者則依角色參與招募協作。
+
+[核心功能](#核心功能一覽) · [可設定簽核與標準職稱](#可設定簽核與標準職稱) · [技術重點](#技術重點) · [本機啟動](#本機啟動) · [Demo 登入](#demo-登入)
 
 ## 畫面預覽
 
-以下為開發環境畫面，履歷與面試資料均為虛構展示資料。
+以下為既有開發版本的功能畫面示意，履歷與面試資料均為虛構展示資料；實際排版依使用版本而異。
 
 ### HR 工作台
 
@@ -37,15 +39,30 @@ HireFlow 是一個整合人力需求簽核、公開職缺、應徵者管理、�
 | 模組 | 主要功能 |
 | --- | --- |
 | 帳號與權限 | Session 登入、CSRF、ADMIN／HR／用人主管／面試官角色權限 |
-| 人力需求 | 建立需求、送審、HR 核准／退回／拒絕、核准後建立職缺 |
+| 人力需求 | 建立草稿、送審、HR 核准／退回／拒絕、核准後建立職缺 |
 | 公開職缺 | 公開職缺列表、職缺詳情及求職者線上應徵 |
 | 應徵者 | 基本履歷、自傳、作品集、多筆工作經歷及 PDF 履歷版本 |
 | 應徵流程 | 招募看板、階段轉換、狀態歷程及求職者進度查詢 |
 | 面試 | 面試安排、改期與地點修改、撞期檢查、面試官指派、自助選時及公司行事曆 |
-| 評分與決策 | 評分表鎖定／解鎖、評分彙整、錄取決策與前置條件檢查 |
-| Offer | 草稿、送審、主管核准／退回、寄送、接受／拒絕及到期提醒 |
+| 評分與決策 | 評分表鎖定／解鎖、評分彙整、錄取／保留／不錄取、前置條件檢查及案件搜尋分頁 |
+| Offer | 草稿、送審、主管核准／退回、寄送、接受／拒絕、到期提醒及案件搜尋分頁 |
 | 外部整合 | Gmail SMTP、Email Outbox、Google Calendar OAuth 與事件同步 |
-| 管理與稽核 | 整合工作紀錄、失敗重試、全域 Audit Log 與部門資料隔離 |
+| 管理與稽核 | 通知與同步紀錄、失敗重試、全域 Audit Log 與部門資料隔離 |
+
+## 可設定簽核與標準職稱
+
+> 此擴充功能已於本機完成實作與自動化驗證，相關程式碼尚未同步至本 Repository。下列內容說明擴充版本的行為；目前可下載執行的功能以 Repository 內程式碼為準。新版暖色介面也尚未同步。
+
+- **招募設定**：由 HR／管理員維護標準職稱，以及適用部門、簽核順序與各關指定簽核人。
+- **統一職稱**：建立人力需求時只能選取啟用中的標準職稱，例如統一使用「Java 後端工程師」；API 接收職稱 ID，後端同步驗證，避免任意文字進入職稱欄位。
+- **循序簽核**：支援 1～8 關，上一關核准後下一關才能處理，最後一關核准才建立職缺。
+- **流程快照**：送審時保存流程名稱、版本、關卡與簽核人姓名，範本後續修改不影響進行中的案件。
+- **退回重送**：退回需填理由，修改後建立新一輪簽核，保留舊輪次的決定與歷程；拒絕則結束申請。
+- **待我簽核**：由後端依目前關卡指定人、角色及部門範圍查詢待辦。
+
+例如工程部可使用「用人主管審核 → HR 最終核准」；其他部門可選擇不同範本。標準職稱可停用，既有需求與職缺保留歷史名稱。需求原因、技能條件與履歷經歷等描述欄位仍使用文字輸入。
+
+詳細規則與 API 見[簽核流程與標準職稱](docs/APPROVAL_WORKFLOWS.md)。
 
 ## 技術重點
 
@@ -118,7 +135,7 @@ Google Calendar OAuth 2.0 / Gmail SMTP
 - Cookie 與 Header 搭配 CSRF Token 保護狀態修改 API。
 - 受保護 API 依登入狀態與權限回傳 401 或 403。
 - Google Token 以 AES-256-GCM 加密後才寫入資料庫。
-- Candidate Portal 使用有期限的雜湊 Token，不直接暴露資料庫 ID。
+- Candidate Portal 以公開 UUID 搭配有期限的隨機 Token 驗證存取；資料庫只保存 Token 雜湊值。
 - PDF 履歷使用 UUID 儲存名稱，並驗證檔案格式、大小與正規化路徑。
 - 用人主管只能存取自己部門的招募資料、行事曆及履歷。
 
@@ -182,9 +199,19 @@ cd backend
 
 ### 3. 啟動 Frontend
 
+另開一個終端機，從專案根目錄執行。Windows PowerShell 使用 `npm.cmd`，可避免執行原則阻擋 `npm.ps1`：
+
+```powershell
+cd frontend
+npm.cmd ci
+npm.cmd run dev
+```
+
+macOS／Linux：
+
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
@@ -193,16 +220,18 @@ npm run dev
 
 ## Demo 登入
 
-四組 Demo 帳號共用密碼：`HireFlow123!`
+本機 Demo 資料初始化啟用時，四組帳號共用密碼：`HireFlow123!`。這些是展示帳號，非真實公司帳號。
 
 | 角色 | Email | 主要權限 |
 | --- | --- | --- |
 | ADMIN | `admin@hireflow.local` | 全系統管理與稽核 |
 | HR | `hr@hireflow.local` | 招募流程、Offer 與整合工作 |
-| HIRING_MANAGER | `manager@hireflow.local` | 自己部門的簽核、面試與錄取決策 |
+| HIRING_MANAGER | `manager@hireflow.local` | 自己部門的需求、面試、招募決策與 Offer 簽核 |
 | INTERVIEWER | `interviewer@hireflow.local` | 被指派面試的查看與評分 |
 
 ## 驗證指令
+
+Windows PowerShell，從專案根目錄執行：
 
 ```powershell
 # Backend
@@ -211,17 +240,17 @@ cd backend
 
 # Frontend
 cd ..\frontend
-npm run test
-npm run build
+npm.cmd test
+npm.cmd run build
 ```
 
-目前自動化驗證結果：
+驗證範圍：
 
-- Backend：53 項一般測試通過，3 項需憑證／外部資料庫的測試預設跳過
-- Frontend：19 項測試通過
-- Frontend production build 通過
-- GitHub Actions 會在 `main`、`codex/**` 與 Pull Request 執行前後端驗證
+- Backend：登入與權限、需求簽核、應徵階段、面試、評分與決策、Offer、履歷附件，以及通知派送。
+- Frontend：API Service 與資料處理測試，並以 production build 檢查正式版本能否建置。
+- GitHub Actions 會在 `main`、`codex/**` 與 Pull Request 執行後端測試、前端測試／建置，以及 PostgreSQL Migration 驗證。
 - CI 使用獨立 PostgreSQL 17 驗證全新資料庫的 Flyway Migration 與 Hibernate Schema；H2 測試不會讀取本機 `.env` 或寄出信件。
+- Gmail 連線／實際寄送與 PostgreSQL 測試需明確開啟對應環境設定；一般測試預設跳過外部服務檢查。實際測試結果以各次執行紀錄為準。
 
 Gmail 設定完成後，可在 `backend/` 用下列指令只驗證 SMTP 登入，不寄信：
 
